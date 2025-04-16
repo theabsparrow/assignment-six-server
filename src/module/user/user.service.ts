@@ -11,6 +11,7 @@ import { createToken } from "../auth/auth.utills";
 import config from "../../config";
 import { USER_ROLE } from "./user.const";
 import { TMealProvider } from "../mealProvider/mealProvider.interface";
+import { MealProvider } from "../mealProvider/mealProvider.model";
 
 const createCustomer = async (userData: TUSer, customer: TCustomer) => {
   const isEmailExists = await User.findOne({
@@ -112,7 +113,7 @@ const createMealProvider = async (
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    userData.role = USER_ROLE.customer;
+    userData.role = USER_ROLE["meal provider"];
     const userInfo = await User.create([userData], { session });
     if (!userInfo.length) {
       throw new AppError(StatusCodes.BAD_REQUEST, "user regestration faild");
@@ -136,7 +137,9 @@ const createMealProvider = async (
     mealProvider.user = user?._id;
     mealProvider.email = user?.email;
     mealProvider.name = capitalizeFirstWord(mealProvider?.name);
-    const mealProviderInfo = await Customer.create([mealProvider], { session });
+    const mealProviderInfo = await MealProvider.create([mealProvider], {
+      session,
+    });
     if (!mealProviderInfo.length) {
       throw new AppError(StatusCodes.BAD_REQUEST, "user regestration faild");
     }
@@ -150,7 +153,26 @@ const createMealProvider = async (
     throw new AppError(StatusCodes.BAD_REQUEST, err);
   }
 };
+
+const getMeroute = async (userId: string, userRole: string) => {
+  let result = null;
+  if (userRole === USER_ROLE.customer || userRole === USER_ROLE.admin) {
+    result = await Customer.findOne({ user: userId }).populate("user");
+  }
+  if (userRole === USER_ROLE["meal provider"]) {
+    result = await MealProvider.findOne({ user: userId }).populate("user");
+  }
+  if (userRole === USER_ROLE.superAdmin) {
+    result = await User.findById(userId);
+  }
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "data not available");
+  }
+  return result;
+};
+
 export const userService = {
   createCustomer,
   createMealProvider,
+  getMeroute,
 };

@@ -14,7 +14,15 @@ const customerValidationSchema = z.object({
       .string({
         required_error: "Password is required",
       })
-      .min(8, "Password must be at least 8 character"),
+      .min(6, { message: "password can`t be less than 6 character" })
+      .max(20, { message: "password can`t be more than 20 character" })
+      .refine(
+        (value) => /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])/.test(value),
+        {
+          message:
+            "password must be contain one capital letter, one small letter, one number and one special chareacter ",
+        }
+      ),
   }),
   customer: z.object({
     name: z.string().min(1, "Name is required"),

@@ -19,6 +19,7 @@ const corsOption = {
 };
 app.use(cors(corsOption));
 app.use("/api/v1", router);
+
 const test = (req: Request, res: Response) => {
   const message = `server is running on port ${config.port}`;
   res.send(message);

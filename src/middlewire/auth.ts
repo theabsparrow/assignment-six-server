@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from "express";
-import { TUSerRole } from "../module/user/user.interface";
+import { TUSerRole } from "../module/customer/customer.interface";
 import { catchAsync } from "../utills/catchAsync";
 import { StatusCodes } from "http-status-codes";
 import { verifyToken } from "../module/auth/auth.utills";

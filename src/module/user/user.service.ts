@@ -2,16 +2,25 @@
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../error/AppError";
 import { TCustomer } from "../customer/customer.interface";
-import { TUSer } from "./user.interface";
+import { TStatus, TUSer, TUSerRole } from "./user.interface";
 import { User } from "./user.model";
 import { calculateAge, capitalizeFirstWord } from "./user.utills";
 import mongoose from "mongoose";
 import { Customer } from "../customer/customer.model";
-import { createToken } from "../auth/auth.utills";
+import {
+  createToken,
+  generateOTP,
+  passwordMatching,
+  verifyToken,
+  verifyUser,
+} from "../auth/auth.utills";
 import config from "../../config";
 import { USER_ROLE } from "./user.const";
 import { TMealProvider } from "../mealProvider/mealProvider.interface";
 import { MealProvider } from "../mealProvider/mealProvider.model";
+import bcrypt from "bcrypt";
+import { TJwtPayload } from "../auth/auth.interface";
+import { JwtPayload } from "jsonwebtoken";
 
 const createCustomer = async (userData: TUSer, customer: TCustomer) => {
   const isEmailExists = await User.findOne({
@@ -171,8 +180,231 @@ const getMeroute = async (userId: string, userRole: string) => {
   return result;
 };
 
+const changeUserStatus = async (status: TStatus, userId: string) => {
+  const isUSer = await User.findById(userId);
+  if (isUSer && isUSer?.status === status) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      `this user status is already ${isUSer?.status}`
+    );
+  }
+  const result = await User.findByIdAndUpdate(
+    userId,
+    { status: status },
+    { new: true }
+  );
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to change status");
+  }
+  return result;
+};
+
+const dleteMyAccount = async (id: string) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const deleteFromUser = await User.findByIdAndUpdate(
+      id,
+      { isDeleted: true },
+      { session, new: true, runValidators: true }
+    );
+    if (!deleteFromUser) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "faild to delete your account"
+      );
+    }
+    const role = deleteFromUser?.role;
+    const email = deleteFromUser?.email;
+    let deleteAccount;
+    if (role === USER_ROLE["meal provider"]) {
+      deleteAccount = await MealProvider.findOneAndUpdate(
+        { email: email },
+        { isDeleted: true },
+        { session, new: true, runValidators: true }
+      );
+    }
+    if (role === USER_ROLE.customer) {
+      deleteAccount = await Customer.findOneAndUpdate(
+        { email: email },
+        { isDeleted: true },
+        { session, new: true, runValidators: true }
+      );
+    }
+    if (!deleteAccount) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "faild to delete your account"
+      );
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    return deleteFromUser;
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(StatusCodes.BAD_REQUEST, err);
+  }
+};
+
+const deleteAccount = async (id: string, role: string) => {
+  const isUserExist = await verifyUser(id);
+  if (
+    role === USER_ROLE.admin &&
+    (isUserExist?.role === USER_ROLE.admin ||
+      isUserExist?.role === USER_ROLE.superAdmin)
+  ) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you can`t delete an admin account"
+    );
+  }
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const deleteFromUser = await User.findByIdAndUpdate(
+      id,
+      { isDeleted: true },
+      { session, new: true, runValidators: true }
+    );
+    if (!deleteFromUser) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "faild to delete your account"
+      );
+    }
+    const role = deleteFromUser?.role;
+    const email = deleteFromUser?.email;
+
+    let deleteAccount;
+    if (role === USER_ROLE["meal provider"]) {
+      deleteAccount = await MealProvider.findOneAndUpdate(
+        { email: email },
+        { isDeleted: true },
+        { session, new: true, runValidators: true }
+      );
+    }
+    if (role === USER_ROLE.customer) {
+      deleteAccount = await Customer.findOneAndUpdate(
+        { email: email },
+        { isDeleted: true },
+        { session, new: true, runValidators: true }
+      );
+    }
+    if (!deleteAccount) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "faild to delete your account"
+      );
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    return deleteFromUser;
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(StatusCodes.BAD_REQUEST, err);
+  }
+};
+
+const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
+  const { email, phone } = payload;
+  let updatedNumber = null;
+  if (phone) {
+    updatedNumber = User.findByIdAndUpdate(id, { phone: phone }, { new: true });
+    if (!updatedNumber) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "faild to update phone number"
+      );
+    }
+  }
+  let otpToken = null;
+  if (email) {
+    const isUSer = await User.findById(id);
+    const newotp = generateOTP().toString();
+    const hashedOTP = await bcrypt.hash(
+      newotp,
+      config.bcrypt_salt_round as string
+    );
+    const jwtPayload: TJwtPayload = {
+      userId: `${isUSer?._id.toString() as string} ${hashedOTP}`,
+      userRole: isUSer?.role as TUSerRole,
+      email: email,
+    };
+    otpToken = createToken(
+      jwtPayload,
+      config.jwt_access_secret as string,
+      "2m"
+    );
+  }
+  return { updatedNumber, otpToken };
+};
+
+const verifyEmail = async (payload: { otp: string }, otpToken: string) => {
+  const { otp } = payload;
+  const secret = config.jwt_refresh_secret as string;
+  const decoded = verifyToken(otpToken, secret);
+  const { userId, email, userRole } = decoded as JwtPayload;
+  const hashedOtp = userId.split(" ")[1];
+  const id = userId.split(" ")[0];
+
+  const isOtpMatched = await passwordMatching(otp, hashedOtp);
+  if (!isOtpMatched) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "the otp you have provided is wrong"
+    );
+  }
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const updateEmailFromUser = User.findByIdAndUpdate(
+      id,
+      { email: email },
+      { session, new: true, runValidators: true }
+    );
+    if (!updateEmailFromUser) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to update email");
+    }
+
+    if (userRole === USER_ROLE["meal provider"]) {
+      const updateMealProviderEmail = await MealProvider.findOneAndUpdate(
+        { user: id },
+        { email: email },
+        { session, new: true, runValidators: true }
+      );
+      if (!updateMealProviderEmail) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update email");
+      }
+    }
+    if (userRole === USER_ROLE.customer || userRole === USER_ROLE.admin) {
+      const updateCustomerEmail = await Customer.findOneAndUpdate(
+        { user: id },
+        { email: email },
+        { session, new: true, runValidators: true }
+      );
+      if (!updateCustomerEmail) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update email");
+      }
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    return updateEmailFromUser;
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(StatusCodes.BAD_REQUEST, err);
+  }
+};
+
 export const userService = {
   createCustomer,
   createMealProvider,
   getMeroute,
+  changeUserStatus,
+  dleteMyAccount,
+  deleteAccount,
+  updatePhoneEmail,
+  verifyEmail,
 };

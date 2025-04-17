@@ -1,41 +1,45 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utills/catchAsync";
 import { JwtPayload } from "jsonwebtoken";
-import { customerService } from "./customer.service";
+import { mealProviderService } from "./mealProvider.service";
 import { sendResponse } from "../../utills/sendResponse";
 import { StatusCodes } from "http-status-codes";
 
-const getAllCustomer = catchAsync(
+const getAllMealProviders = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
     const { userRole } = user as JwtPayload;
     const query = req.query;
-    const result = await customerService.getAllCustomer(userRole, query);
+    const result = await mealProviderService.getAllMealProvider(
+      userRole,
+      query
+    );
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "customer data retrived successfully",
+      message: "meal providers are retrived successfully",
       data: result,
     });
   }
 );
 
-const getASingleCustomer = catchAsync(
+const getASingleMealProvider = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
-    const result = await customerService.getASingleCustomer(id);
+    const result = await mealProviderService.getASingleMealProvider(id);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "customer data is retrived successfully",
+      message: "meal provider is retrived successfully",
       data: result,
     });
   }
 );
 
-export const customerController = {
-  getAllCustomer,
-  getASingleCustomer,
+export const mealProviderController = {
+  getAllMealProviders,
+  getASingleMealProvider,
 };

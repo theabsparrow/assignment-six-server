@@ -124,8 +124,8 @@ const generateAccessToken = async (refreshToken: string) => {
   const secret = config.jwt_refresh_secret as string;
   const decoded = verifyToken(refreshToken, secret);
   const { userId, iat } = decoded as JwtPayload;
-  const isUserExist = await verifyUser(userId);
-  if (isUserExist?.passwordChangedAt) {
+  const isUserExist = await User.findById(userId);
+  if (isUserExist && isUserExist?.passwordChangedAt) {
     const passwordChangedTime = isUserExist?.passwordChangedAt as Date;
     const passwordChangedTimeComparison = timeComparison(
       passwordChangedTime,

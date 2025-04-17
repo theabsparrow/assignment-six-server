@@ -4,6 +4,7 @@ import { authValidation } from "./auth.validation";
 import { authController } from "./auth.controller";
 import { auth } from "../../middlewire/auth";
 import { USER_ROLE } from "../user/user.const";
+import { verifyRefreshToken } from "../../middlewire/auth.refreshToken";
 
 const router = Router();
 
@@ -33,7 +34,16 @@ router.post(
   validateRequest(authValidation.passwordChangedValidationSchema),
   authController.changePassword
 );
-router.get("/get-token", authController.generateAccessToken);
+router.get(
+  "/get-token",
+  verifyRefreshToken(
+    USER_ROLE.admin,
+    USER_ROLE.customer,
+    USER_ROLE["meal provider"],
+    USER_ROLE.superAdmin
+  ),
+  authController.generateAccessToken
+);
 router.post(
   "/forget-password",
   validateRequest(authValidation.forgetPasswordValidationSchema),

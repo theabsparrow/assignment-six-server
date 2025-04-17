@@ -32,6 +32,17 @@ const mealProviderValidationSchema = z.object({
   }),
 });
 
+const updateMealProviderValidationSchema = z.object({
+  name: z.string().min(1, "Name is required").trim().optional(),
+  bio: z.string().min(1, "Bio is required").trim().optional(),
+  profileImage: z.string().url("Must be a valid URL").optional(),
+  dateOfBirth: z.string().min(1, "Date of birth is required").optional(),
+  address: z.string().min(1, "Address is required").optional(),
+  experienceYears: z.number().int().nonnegative().optional(),
+  isCertified: z.boolean().optional(),
+  licenseDocument: z.string().url("Must be a valid URL").optional().optional(),
+});
 export const mealProviderValidation = {
   mealProviderValidationSchema,
+  updateMealProviderValidationSchema,
 };

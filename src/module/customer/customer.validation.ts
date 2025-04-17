@@ -42,6 +42,30 @@ const customerValidationSchema = z.object({
   }),
 });
 
+const updateCustomerInfoValidationSchema = z.object({
+  name: z.string().min(2, "Name should be at least one character").optional(),
+  profileImage: z.string().url().optional(),
+  address: z
+    .string()
+    .min(1, "Address should be at least one character")
+    .optional(),
+  preferredMealTime: z.enum([...mealTime] as [string, ...string[]]).optional(),
+  addFoodPreference: z
+    .array(z.enum([...foodPreferance] as [string, ...string[]]))
+    .optional(),
+  removeFoodPreference: z
+    .array(z.enum([...foodPreferance] as [string, ...string[]]))
+    .optional(),
+  addAllergies: z
+    .array(z.enum([...allergyOptions] as [string, ...string[]]))
+    .optional(),
+  removeAllergies: z
+    .array(z.enum([...allergyOptions] as [string, ...string[]]))
+    .optional(),
+  dateOfBirth: z.string().min(1, "Birth date is required").optional(),
+});
+
 export const customerValidation = {
   customerValidationSchema,
+  updateCustomerInfoValidationSchema,
 };

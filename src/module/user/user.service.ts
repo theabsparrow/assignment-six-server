@@ -21,6 +21,8 @@ import { MealProvider } from "../mealProvider/mealProvider.model";
 import bcrypt from "bcrypt";
 import { TJwtPayload } from "../auth/auth.interface";
 import { JwtPayload } from "jsonwebtoken";
+import { otpEmailTemplate } from "../../utills/otpEmailTemplate";
+import { sendEmail } from "../../utills/sendEmail";
 
 const createCustomer = async (userData: TUSer, customer: TCustomer) => {
   const isEmailExists = await User.findOne({
@@ -337,6 +339,15 @@ const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
       config.jwt_access_secret as string,
       "2m"
     );
+    if (otpToken && hashedOTP) {
+      const html = otpEmailTemplate(newotp);
+      await sendEmail({
+        to: email,
+        html,
+        subject: "Your one time password(OTP)",
+        text: "This one time password is valid for only 2 minutes",
+      });
+    }
   }
   return { updatedNumber, otpToken };
 };

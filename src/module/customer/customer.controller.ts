@@ -35,7 +35,23 @@ const getASingleCustomer = catchAsync(
   }
 );
 
+const updateCustomerInfo = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { userId } = user as JwtPayload;
+    const payload = req.body;
+    const result = await customerService.updateCustomerInfo(userId, payload);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "customer data updated successfully",
+      data: result,
+    });
+  }
+);
+
 export const customerController = {
   getAllCustomer,
   getASingleCustomer,
+  updateCustomerInfo,
 };

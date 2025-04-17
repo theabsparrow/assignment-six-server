@@ -39,7 +39,23 @@ const getASingleMealProvider = catchAsync(
   }
 );
 
+const updateData = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const payload = req.body;
+    const user = req.user;
+    const { userId } = user as JwtPayload;
+    const result = await mealProviderService.updateInfo(payload, userId);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "information is updated successfully",
+      data: result,
+    });
+  }
+);
+
 export const mealProviderController = {
   getAllMealProviders,
   getASingleMealProvider,
+  updateData,
 };

@@ -166,7 +166,7 @@ const forgetPassword = async (email: string) => {
   );
   const userEmail = result?.email;
   if (resetAccessToken && newotp) {
-    const resetToken = `Bearer ${resetAccessToken}`;
+    const resetToken = resetAccessToken;
     const html = otpEmailTemplate(newotp);
     await sendEmail({
       to: userEmail,

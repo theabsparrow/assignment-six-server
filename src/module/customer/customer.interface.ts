@@ -30,3 +30,10 @@ export type TCustomer = {
   dateOfBirth: string;
   isDeleted: boolean;
 };
+
+export interface TExtendedCustomer extends TCustomer {
+  addFoodPreference: FoodPreferenceOption[];
+  removeFoodPreference: FoodPreferenceOption[];
+  addAllergies: TAlergies[];
+  removeAllergies: TAlergies[];
+}

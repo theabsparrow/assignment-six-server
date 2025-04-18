@@ -23,4 +23,4 @@ router.patch(
   validateRequest(customerValidation.updateCustomerInfoValidationSchema),
   customerController.updateCustomerInfo
 );
-export const customerRouter = router;
+export const customerRoute = router;

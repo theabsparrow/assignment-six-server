@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const updateEmailPhoneValidationSchema = z.object({
-  mail: z.string().email("Invalid email").trim().optional(),
+  email: z.string().email("Invalid email").trim().optional(),
   phone: z.string().min(1, "Phone number is required").trim().optional(),
 });
 

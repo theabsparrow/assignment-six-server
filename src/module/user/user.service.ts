@@ -23,6 +23,7 @@ import { TJwtPayload } from "../auth/auth.interface";
 import { JwtPayload } from "jsonwebtoken";
 import { otpEmailTemplate } from "../../utills/otpEmailTemplate";
 import { sendEmail } from "../../utills/sendEmail";
+import { Kitchen } from "../kitchen/kitchen.model";
 
 const createCustomer = async (userData: TUSer, customer: TCustomer) => {
   const isEmailExists = await User.findOne({
@@ -190,15 +191,33 @@ const changeUserStatus = async (status: TStatus, userId: string) => {
       `this user status is already ${isUSer?.status}`
     );
   }
-  const result = await User.findByIdAndUpdate(
-    userId,
-    { status: status },
-    { new: true }
-  );
-  if (!result) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "faild to change status");
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const result = await User.findByIdAndUpdate(
+      userId,
+      { status: status },
+      { new: true, session, runValidators: true }
+    );
+    if (!result) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to change status");
+    }
+    const blockKitchen = await Kitchen.findOneAndUpdate(
+      { owner: result?._id },
+      { isActive: false },
+      { session, new: true, runValidators: true }
+    );
+    if (!blockKitchen) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to change status");
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    return result;
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(StatusCodes.BAD_REQUEST, err);
   }
-  return result;
 };
 
 const dleteMyAccount = async (id: string) => {
@@ -226,6 +245,21 @@ const dleteMyAccount = async (id: string) => {
         { session, new: true, runValidators: true }
       );
     }
+
+    if (role === USER_ROLE["meal provider"] && deleteAccount) {
+      const result = await Kitchen.findOneAndUpdate(
+        { owner: deleteAccount?._id },
+        { isDeleted: true },
+        { session, new: true, runValidators: true }
+      );
+      if (!result) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          "faild to delete your account"
+        );
+      }
+    }
+
     if (role === USER_ROLE.customer) {
       deleteAccount = await Customer.findOneAndUpdate(
         { email: email },
@@ -286,6 +320,21 @@ const deleteAccount = async (id: string, role: string) => {
         { session, new: true, runValidators: true }
       );
     }
+
+    if (role === USER_ROLE["meal provider"] && deleteAccount) {
+      const result = await Kitchen.findOneAndUpdate(
+        { owner: deleteAccount?._id },
+        { isDeleted: true },
+        { session, new: true, runValidators: true }
+      );
+      if (!result) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          "faild to delete your account"
+        );
+      }
+    }
+
     if (role === USER_ROLE.customer) {
       deleteAccount = await Customer.findOneAndUpdate(
         { email: email },

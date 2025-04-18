@@ -52,8 +52,28 @@ const getASingleMyPlan = catchAsync(
   }
 );
 
+const updateMealPlanner = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const payload = req.body;
+    const user = req.user;
+    const result = await mealPlannerService.updateMealPlan({
+      id,
+      payload,
+      user,
+    });
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "meal plan info is updated successfully",
+      data: result,
+    });
+  }
+);
+
 export const mealPlannerController = {
   createMealPlanner,
   getMyPlans,
   getASingleMyPlan,
+  updateMealPlanner,
 };

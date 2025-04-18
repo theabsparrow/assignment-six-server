@@ -22,4 +22,10 @@ router.get(
   auth(USER_ROLE.customer),
   mealPlannerController.getASingleMyPlan
 );
+router.patch(
+  "/update-plan",
+  auth(USER_ROLE.customer),
+  validateRequest(mealPlannerValidation.updateMealPlannerValidationSchema),
+  mealPlannerController.updateMealPlanner
+);
 export const mealPlannerRoute = router;

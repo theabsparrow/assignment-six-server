@@ -30,3 +30,14 @@ export type TKitchen = {
   isDeleted: boolean;
   isActive: boolean;
 };
+
+export interface TExtendedKitchen extends TKitchen {
+  addFoodPreference: FoodPreferenceOption[];
+  removeFoodPreference: FoodPreferenceOption[];
+  addMealTimePerDay: TMealTime[];
+  removeMealTimePerDay: TMealTime[];
+  addCookingDays: TCookingDay[];
+  removeCookingDays: TCookingDay[];
+  addSpecialEquipments: string[];
+  removeSpecialEquipments: string[];
+}

@@ -49,8 +49,25 @@ const getASingleKitchen = catchAsync(
     });
   }
 );
+
+const updateKitchenInfo = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const payload = req.body;
+    const user = req.user;
+    const result = await kitchenService.updateKitchen({ id, payload, user });
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "kitchen information is updated successfully",
+      data: result,
+    });
+  }
+);
+
 export const kitchenController = {
   createKitchen,
   getAllKitchen,
   getASingleKitchen,
+  updateKitchenInfo,
 };

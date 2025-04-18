@@ -1,11 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../error/AppError";
-import { TKitchen } from "./kitchen.interface";
+import { TExtendedKitchen, TKitchen } from "./kitchen.interface";
 import { Kitchen } from "./kitchen.model";
 import { MealProvider } from "../mealProvider/mealProvider.model";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { JwtPayload } from "jsonwebtoken";
 import { USER_ROLE } from "../user/user.const";
+import mongoose from "mongoose";
 
 const createKitchen = async (id: string, payload: TKitchen) => {
   const isMealProvider = await MealProvider.findOne({ user: id }).select(
@@ -93,8 +96,152 @@ const getASingleKitchen = async (id: string) => {
   return result;
 };
 
+const updateKitchen = async ({
+  id,
+  payload,
+  user,
+}: {
+  id: string;
+  payload: Partial<TExtendedKitchen>;
+  user: JwtPayload;
+}) => {
+  const { userId } = user;
+  const isKitchenExist = await Kitchen.findById(id).select("owner");
+  if (!isKitchenExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
+  }
+  const isMealProvider = await MealProvider.findOne({ user: userId }).select(
+    "email"
+  );
+  if (!isMealProvider) {
+    throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
+  }
+  if (isKitchenExist?.owner.toString() !== isMealProvider?._id.toString()) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      "you can`t update this kitchen info"
+    );
+  }
+  const {
+    addFoodPreference,
+    removeFoodPreference,
+    addMealTimePerDay,
+    removeMealTimePerDay,
+    addCookingDays,
+    removeCookingDays,
+    addSpecialEquipments,
+    removeSpecialEquipments,
+    ...remainingData
+  } = payload;
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const updatedBasicData = await Kitchen.findByIdAndUpdate(
+      id,
+      remainingData,
+      { session, new: true, runValidators: true }
+    );
+    if (!updatedBasicData) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
+    }
+    // food preference
+    if (removeFoodPreference && removeFoodPreference.length > 0) {
+      const updated = await Kitchen.findByIdAndUpdate(
+        id,
+        { $pull: { foodPreference: removeFoodPreference } },
+        { session, new: true, runValidators: true }
+      );
+      if (!updated) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
+      }
+    }
+    if (addFoodPreference && addFoodPreference.length > 0) {
+      const updated = await Kitchen.findByIdAndUpdate(
+        id,
+        { $addToSet: { foodPreference: { $each: addFoodPreference } } },
+        { session, new: true, runValidators: true }
+      );
+      if (!updated) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
+      }
+    }
+    // meal time per day
+    if (removeMealTimePerDay && removeMealTimePerDay.length > 0) {
+      const updated = await Kitchen.findByIdAndUpdate(
+        id,
+        { $pull: { mealTimePerDay: removeMealTimePerDay } },
+        { session, new: true, runValidators: true }
+      );
+      if (!updated) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
+      }
+    }
+    if (addMealTimePerDay && addMealTimePerDay.length > 0) {
+      const updated = await Kitchen.findByIdAndUpdate(
+        id,
+        { $addToSet: { mealTimePerDay: { $each: addMealTimePerDay } } },
+        { session, new: true, runValidators: true }
+      );
+      if (!updated) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
+      }
+    }
+    // cooking day
+    if (removeCookingDays && removeCookingDays.length > 0) {
+      const updated = await Kitchen.findByIdAndUpdate(
+        id,
+        { $pull: { cookingDays: removeCookingDays } },
+        { session, new: true, runValidators: true }
+      );
+      if (!updated) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
+      }
+    }
+    if (addCookingDays && addCookingDays.length > 0) {
+      const updated = await Kitchen.findByIdAndUpdate(
+        id,
+        { $addToSet: { cookingDays: { $each: addCookingDays } } },
+        { session, new: true, runValidators: true }
+      );
+      if (!updated) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
+      }
+    }
+    // special equepment
+    if (removeSpecialEquipments && removeSpecialEquipments.length > 0) {
+      const updated = await Kitchen.findByIdAndUpdate(
+        id,
+        { $pull: { specialEquipments: removeSpecialEquipments } },
+        { session, new: true, runValidators: true }
+      );
+      if (!updated) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
+      }
+    }
+    if (addSpecialEquipments && addSpecialEquipments.length > 0) {
+      const updated = await Kitchen.findByIdAndUpdate(
+        id,
+        { $addToSet: { specialEquipments: { $each: addSpecialEquipments } } },
+        { session, new: true, runValidators: true }
+      );
+      if (!updated) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
+      }
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    const updatedData = await Kitchen.findById(id).populate("owner");
+    return updatedData;
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(StatusCodes.BAD_REQUEST, err);
+  }
+};
+
 export const kitchenService = {
   createKitchen,
   getAllKitchen,
   getASingleKitchen,
+  updateKitchen,
 };

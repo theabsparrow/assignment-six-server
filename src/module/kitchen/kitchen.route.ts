@@ -32,4 +32,10 @@ router.get(
   ),
   kitchenController.getASingleKitchen
 );
+router.patch(
+  "/update-kitchen/:id",
+  auth(USER_ROLE["meal provider"]),
+  validateRequest(kitchenValidation.updateKitchenValidationSchema),
+  kitchenController.updateKitchenInfo
+);
 export const kitchenRoute = router;

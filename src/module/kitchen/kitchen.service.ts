@@ -101,31 +101,33 @@ const getASingleKitchen = async (id: string) => {
 };
 
 const updateKitchen = async ({
-  id,
   payload,
   user,
 }: {
-  id: string;
   payload: Partial<TExtendedKitchen>;
   user: JwtPayload;
 }) => {
   const { userId } = user;
-  const isKitchenExist = await Kitchen.findById(id).select("owner");
-  if (!isKitchenExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
-  }
   const isMealProvider = await MealProvider.findOne({ user: userId }).select(
     "email"
   );
   if (!isMealProvider) {
     throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
   }
-  if (isKitchenExist?.owner.toString() !== isMealProvider?._id.toString()) {
+
+  const isKitchenExist = await Kitchen.findOne({
+    owner: isMealProvider?._id,
+  }).select("owner");
+  if (!isKitchenExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
+  }
+  if (payload?.kitchenType === "Commercial" && !payload.licenseOrCertificate) {
     throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      "you can`t update this kitchen info"
+      StatusCodes.NOT_FOUND,
+      "commercial kitchen must have a license or certificate"
     );
   }
+  const id = isKitchenExist?._id;
   const {
     addFoodPreference,
     removeFoodPreference,
@@ -137,6 +139,7 @@ const updateKitchen = async ({
     removeSpecialEquipments,
     ...remainingData
   } = payload;
+
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
@@ -152,7 +155,7 @@ const updateKitchen = async ({
     if (removeFoodPreference && removeFoodPreference.length > 0) {
       const updated = await Kitchen.findByIdAndUpdate(
         id,
-        { $pull: { foodPreference: removeFoodPreference } },
+        { $pull: { foodPreference: { $in: removeFoodPreference } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {
@@ -173,7 +176,7 @@ const updateKitchen = async ({
     if (removeMealTimePerDay && removeMealTimePerDay.length > 0) {
       const updated = await Kitchen.findByIdAndUpdate(
         id,
-        { $pull: { mealTimePerDay: removeMealTimePerDay } },
+        { $pull: { mealTimePerDay: { $in: removeMealTimePerDay } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {
@@ -194,7 +197,7 @@ const updateKitchen = async ({
     if (removeCookingDays && removeCookingDays.length > 0) {
       const updated = await Kitchen.findByIdAndUpdate(
         id,
-        { $pull: { cookingDays: removeCookingDays } },
+        { $pull: { cookingDays: { $in: removeCookingDays } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {
@@ -215,7 +218,7 @@ const updateKitchen = async ({
     if (removeSpecialEquipments && removeSpecialEquipments.length > 0) {
       const updated = await Kitchen.findByIdAndUpdate(
         id,
-        { $pull: { specialEquipments: removeSpecialEquipments } },
+        { $pull: { specialEquipments: { $in: removeSpecialEquipments } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {

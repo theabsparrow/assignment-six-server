@@ -14,6 +14,16 @@ const createMealPlan = async (payload: TMealPlanner, userId: string) => {
   if (!customerId) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create planner");
   }
+  const isTitleExist = await MealPlanner.find({
+    customer: customerId?._id,
+    title: payload?.title,
+  }).select("customer title");
+  if (isTitleExist.length) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      "this title is already exist in you plan"
+    );
+  }
   payload.customer = customerId?._id;
   const result = await MealPlanner.create(payload);
   if (!result) {
@@ -57,7 +67,7 @@ const getASingleMyPlan = async (user: JwtPayload, id: string) => {
   if (!result) {
     throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
   }
-  if (isCustomerExist?._id.toString() !== result?.customer.toString()) {
+  if (isCustomerExist?._id.toString() !== result?.customer?._id.toString()) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       "you are not permitted to view this plan"
@@ -91,8 +101,8 @@ const updateMealPlan = async ({
     );
   }
   const {
-    addpreferredMealTime,
-    removepreferredMealTime,
+    addPreferredMealTime,
+    removePreferredMealTime,
     addFoodPreference,
     removeFoodPreference,
     addPreferredMealDay,
@@ -117,7 +127,7 @@ const updateMealPlan = async ({
     if (removeFoodPreference && removeFoodPreference.length > 0) {
       const updated = await MealPlanner.findByIdAndUpdate(
         id,
-        { $pull: { foodPreference: removeFoodPreference } },
+        { $pull: { foodPreference: { $in: removeFoodPreference } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {
@@ -136,20 +146,20 @@ const updateMealPlan = async ({
     }
 
     // preferred meal time
-    if (removepreferredMealTime && removepreferredMealTime.length > 0) {
+    if (removePreferredMealTime && removePreferredMealTime.length > 0) {
       const updated = await MealPlanner.findByIdAndUpdate(
         id,
-        { $pull: { preferredMealTime: removepreferredMealTime } },
+        { $pull: { preferredMealTime: { $in: removePreferredMealTime } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {
         throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
       }
     }
-    if (addpreferredMealTime && addpreferredMealTime.length > 0) {
+    if (addPreferredMealTime && addPreferredMealTime.length > 0) {
       const updated = await MealPlanner.findByIdAndUpdate(
         id,
-        { $addToSet: { preferredMealTime: { $each: addpreferredMealTime } } },
+        { $addToSet: { preferredMealTime: { $each: addPreferredMealTime } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {
@@ -161,7 +171,7 @@ const updateMealPlan = async ({
     if (removePreferredMealDay && removePreferredMealDay.length > 0) {
       const updated = await MealPlanner.findByIdAndUpdate(
         id,
-        { $pull: { preferredMealDay: removePreferredMealDay } },
+        { $pull: { preferredMealDay: { $in: removePreferredMealDay } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {
@@ -183,7 +193,7 @@ const updateMealPlan = async ({
     if (removeDietaryPreferences && removeDietaryPreferences.length > 0) {
       const updated = await MealPlanner.findByIdAndUpdate(
         id,
-        { $pull: { dietaryPreferences: removeDietaryPreferences } },
+        { $pull: { dietaryPreferences: { $in: removeDietaryPreferences } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {

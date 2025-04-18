@@ -23,7 +23,7 @@ router.get(
   mealPlannerController.getASingleMyPlan
 );
 router.patch(
-  "/update-plan",
+  "/update-plan/:id",
   auth(USER_ROLE.customer),
   validateRequest(mealPlannerValidation.updateMealPlannerValidationSchema),
   mealPlannerController.updateMealPlanner

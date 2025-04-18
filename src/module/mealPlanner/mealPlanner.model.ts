@@ -8,7 +8,6 @@ const mealPlannerSchema = new Schema<TMealPlanner>(
     title: {
       type: String,
       required: [true, "title is required"],
-      unique: true,
       trim: true,
     },
     customer: {

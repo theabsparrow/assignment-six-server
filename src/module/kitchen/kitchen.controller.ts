@@ -52,10 +52,9 @@ const getASingleKitchen = catchAsync(
 
 const updateKitchenInfo = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const id = req.params.id;
     const payload = req.body;
     const user = req.user;
-    const result = await kitchenService.updateKitchen({ id, payload, user });
+    const result = await kitchenService.updateKitchen({ payload, user });
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

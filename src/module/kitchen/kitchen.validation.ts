@@ -17,7 +17,7 @@ const kitchenValidationSchema = z.object({
     .min(1, "Location is required")
     .trim(),
   email: z.string().email("Invalid email").trim().optional(),
-  phone: z.string().min(1, "Phone number is required").trim(),
+  phoneNumber: z.string().min(1, "Phone number is required").trim(),
   kitchenPhotos: z
     .array(z.string().url("Each kitchen photo must be a valid URL"))
     .min(1, "At least 1 kitchen photo is required")
@@ -32,8 +32,8 @@ const kitchenValidationSchema = z.object({
   foodPreference: z
     .array(z.enum([...foodPreferance] as [string, ...string[]]))
     .optional(),
-  mealTimePerDay: z.enum([...mealTime] as [string, ...string[]]),
-  cookingDays: z.enum([...weekDays] as [string, ...string[]]),
+  mealTimePerDay: z.array(z.enum([...mealTime] as [string, ...string[]])),
+  cookingDays: z.array(z.enum([...weekDays] as [string, ...string[]])),
   specialEquipments: z.array(z.string()).optional(),
 });
 
@@ -46,7 +46,7 @@ const updateKitchenValidationSchema = z.object({
   kitchenType: z.enum([...kitchenType] as [string, ...string[]]).optional(),
   location: z.string().min(1, "Location is required").trim().optional(),
   email: z.string().email("Invalid email").trim().optional(),
-  phone: z.string().min(1, "Phone number is required").trim().optional(),
+  phoneNumber: z.string().min(1, "Phone number is required").trim().optional(),
   hygieneCertified: z.boolean().optional(),
   licenseOrCertificate: z.string().optional(),
   foodHandlerExperience: z
@@ -60,12 +60,18 @@ const updateKitchenValidationSchema = z.object({
   removeFoodPreference: z
     .array(z.enum([...foodPreferance] as [string, ...string[]]))
     .optional(),
-  addMealTimePerDay: z.enum([...mealTime] as [string, ...string[]]).optional(),
-  removeMealTimePerDay: z
-    .enum([...mealTime] as [string, ...string[]])
+  addMealTimePerDay: z
+    .array(z.enum([...mealTime] as [string, ...string[]]))
     .optional(),
-  addCookingDays: z.enum([...weekDays] as [string, ...string[]]).optional(),
-  removeCookingDays: z.enum([...weekDays] as [string, ...string[]]).optional(),
+  removeMealTimePerDay: z
+    .array(z.enum([...mealTime] as [string, ...string[]]))
+    .optional(),
+  addCookingDays: z
+    .array(z.enum([...weekDays] as [string, ...string[]]))
+    .optional(),
+  removeCookingDays: z
+    .array(z.enum([...weekDays] as [string, ...string[]]))
+    .optional(),
   addSpecialEquipments: z.array(z.string()).optional(),
   removeSpecialEquipments: z.array(z.string()).optional(),
 });

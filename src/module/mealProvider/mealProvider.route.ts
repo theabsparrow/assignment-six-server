@@ -22,4 +22,4 @@ router.patch(
   validateRequest(mealProviderValidation.updateMealProviderValidationSchema),
   mealProviderController.updateData
 );
-export const mealProviderRouter = router;
+export const mealProviderRoute = router;

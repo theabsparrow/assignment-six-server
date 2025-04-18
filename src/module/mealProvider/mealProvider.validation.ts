@@ -28,7 +28,7 @@ const mealProviderValidationSchema = z.object({
     address: z.string().min(1, "Address is required"),
     experienceYears: z.number().int().nonnegative().optional(),
     isCertified: z.boolean(),
-    licenseDocument: z.string().url("Must be a valid URL").optional(),
+    licenseDocument: z.string().optional(),
   }),
 });
 
@@ -40,7 +40,7 @@ const updateMealProviderValidationSchema = z.object({
   address: z.string().min(1, "Address is required").optional(),
   experienceYears: z.number().int().nonnegative().optional(),
   isCertified: z.boolean().optional(),
-  licenseDocument: z.string().url("Must be a valid URL").optional().optional(),
+  licenseDocument: z.string().optional(),
 });
 export const mealProviderValidation = {
   mealProviderValidationSchema,

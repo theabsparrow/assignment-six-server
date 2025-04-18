@@ -32,7 +32,11 @@ const forgetPasswordValidationSchema = z.object({
 const resetPasswordValidationSchema = z.object({
   otp: z.string().min(6, "otp should be about 6 character"),
 });
-
+const refreshTokenValidationSchema = z.object({
+  refreshToken: z.string({
+    required_error: "refresh token is required",
+  }),
+});
 const setNewPasswordValidationSchema = z.object({
   newPassword: z
     .string({
@@ -54,4 +58,5 @@ export const authValidation = {
   forgetPasswordValidationSchema,
   resetPasswordValidationSchema,
   setNewPasswordValidationSchema,
+  refreshTokenValidationSchema,
 };

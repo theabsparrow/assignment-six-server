@@ -12,7 +12,7 @@ class QueryBuilder<T> {
     if (searchTerm) {
       this.modelQuery = this.modelQuery.find({
         $or: searchableFields.map((field) => ({
-          [field]: { $regex: searchTerm, $option: "i" },
+          [field]: { $regex: searchTerm, $options: "i" },
         })),
       });
     }

@@ -29,6 +29,7 @@ const customerSchema = new Schema<TCustomer>(
     allergies: {
       type: [String],
       enum: allergyOptions,
+      default: [],
     },
     gender: {
       type: String,

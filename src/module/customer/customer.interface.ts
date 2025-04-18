@@ -12,6 +12,7 @@ export type TAlergies =
   | "Fish"
   | "Sesame"
   | "Peanuts"
+  | "Dairy"
   | "None";
 
 export type TCustomer = {

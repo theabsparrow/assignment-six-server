@@ -11,6 +11,7 @@ export const allergyOptions: TAlergies[] = [
   "Sesame",
   "Peanuts",
   "None",
+  "Dairy",
 ] as const;
 
 export const gender = ["Male", "Female", "Other"] as const;

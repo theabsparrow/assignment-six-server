@@ -94,7 +94,7 @@ const changePassword = async (payload: TChangePassword, user: string) => {
   if (!isPasswordMatched) {
     throw new AppError(StatusCodes.UNAUTHORIZED, "password doesn`t match");
   }
-  const hashedPassword = await bcrypt.hash(newPassword, saltNumber);
+  const hashedPassword = await bcrypt.hash(newPassword, Number(saltNumber));
   await User.findByIdAndUpdate(
     user,
     { password: hashedPassword, passwordChangedAt: new Date() },
@@ -152,7 +152,7 @@ const forgetPassword = async (email: string) => {
   const newotp = generateOTP().toString();
   const hashedOTP = await bcrypt.hash(
     newotp,
-    config.bcrypt_salt_round as string
+    Number(config.bcrypt_salt_round as string)
   );
   const jwtPayload: TJwtPayload = {
     userId: result?._id.toString() as string,

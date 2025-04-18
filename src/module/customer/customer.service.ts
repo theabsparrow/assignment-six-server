@@ -13,18 +13,21 @@ const getAllCustomer = async (role: string, query: Record<string, unknown>) => {
   const filter: Record<string, unknown> = {};
   if (role === USER_ROLE.admin) {
     filter.isDeleted = false;
-    filter.role = USER_ROLE.customer;
   }
   query = { ...query, ...filter };
+
   const usersQuery = new QueryBuilder(Customer.find().populate("user"), query)
     .search(searchableFields)
     .filter()
     .sort()
     .paginateQuery()
     .fields();
+
   const result = await usersQuery.modelQuery;
   const meta = await usersQuery.countTotal();
-
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
   return { meta, result };
 };
 
@@ -72,7 +75,7 @@ const updateCustomerInfo = async (
     if (removeAllergies && removeAllergies.length > 0) {
       const updated = await Customer.findOneAndUpdate(
         { user: id },
-        { $pull: { allergies: addAllergies } },
+        { $pull: { allergies: { $in: removeAllergies } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {
@@ -83,7 +86,7 @@ const updateCustomerInfo = async (
     if (addAllergies && addAllergies.length > 0) {
       const updated = await Customer.findOneAndUpdate(
         { user: id },
-        { $addToSet: { allergies: { $each: removeAllergies } } },
+        { $addToSet: { allergies: { $each: addAllergies } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {

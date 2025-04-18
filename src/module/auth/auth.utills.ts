@@ -40,48 +40,30 @@ export const generateOTP = (): number => {
 export const verifyUser = async (userId: string) => {
   const isUserExist = await User.findById(userId);
   if (!isUserExist) {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      "faild to generate access token"
-    );
+    throw new AppError(StatusCodes.UNAUTHORIZED, "this user doesn`t exist");
   }
   const deleted = isUserExist?.isDeleted;
   if (deleted) {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      "faild to generate access token"
-    );
+    throw new AppError(StatusCodes.UNAUTHORIZED, "this user doesn`t exist");
   }
   const status = isUserExist?.status;
   if (status === "blocked") {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      "faild to generate access token"
-    );
+    throw new AppError(StatusCodes.UNAUTHORIZED, "this user doesn`t exist");
   }
   return isUserExist;
 };
 export const verifyUserByEmail = async (email: string) => {
   const isUserExist = await User.findOne({ email: email });
   if (!isUserExist) {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      "faild to generate access token"
-    );
+    throw new AppError(StatusCodes.UNAUTHORIZED, "this user doesn`t exist");
   }
   const deleted = isUserExist?.isDeleted;
   if (deleted) {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      "faild to generate access token"
-    );
+    throw new AppError(StatusCodes.UNAUTHORIZED, "this user doesn`t exist");
   }
   const status = isUserExist?.status;
   if (status === "blocked") {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      "faild to generate access token"
-    );
+    throw new AppError(StatusCodes.UNAUTHORIZED, "this user doesn`t exist");
   }
   return isUserExist;
 };

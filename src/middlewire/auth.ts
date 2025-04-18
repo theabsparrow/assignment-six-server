@@ -45,6 +45,7 @@ export const auth = (...requiredRoles: TUSerRole[]) => {
         passwordChangedTime,
         iat as number
       );
+
       if (passwordChangedTimeComparison) {
         throw new AppError(StatusCodes.UNAUTHORIZED, "you are not authorized");
       }

@@ -14,7 +14,6 @@ const getAllMealProvider = async (
   const filter: Record<string, unknown> = {};
   if (role === USER_ROLE.admin) {
     filter.isDeleted = false;
-    filter.role = USER_ROLE["meal provider"];
   }
   query = { ...query, ...filter };
   const usersQuery = new QueryBuilder(

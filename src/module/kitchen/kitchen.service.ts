@@ -12,11 +12,12 @@ import mongoose from "mongoose";
 
 const createKitchen = async (id: string, payload: TKitchen) => {
   const isMealProvider = await MealProvider.findOne({ user: id }).select(
-    "eamil"
+    "email"
   );
   if (!isMealProvider) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
   }
+  payload.owner = isMealProvider?._id;
   const isKitchenExist = await Kitchen.findOne({ owner: isMealProvider?._id });
   if (isKitchenExist) {
     throw new AppError(
@@ -25,14 +26,13 @@ const createKitchen = async (id: string, payload: TKitchen) => {
     );
   }
   const kitchenEmail = payload?.email || isMealProvider?.email;
-  const isEmailExist = await Kitchen.findOne({ email: kitchenEmail });
+  const isEmailExist = await Kitchen.findOne({ email: kitchenEmail }).select(
+    "email"
+  );
+
   if (isEmailExist) {
     throw new AppError(StatusCodes.CONFLICT, "this email is already exists");
   }
-  const modifiedData = {
-    ...payload,
-    email: kitchenEmail,
-  };
   const isPhoneExist = await Kitchen.findOne({
     phoneNumber: payload?.phoneNumber,
   });
@@ -42,13 +42,17 @@ const createKitchen = async (id: string, payload: TKitchen) => {
       "this phone number is already exists"
     );
   }
+  const modifiedData = {
+    ...payload,
+    email: kitchenEmail,
+  };
   if (payload?.kitchenType === "Commercial" && !payload.licenseOrCertificate) {
     throw new AppError(
       StatusCodes.NOT_FOUND,
       "commercial kitchen must have a license or certificate"
     );
   }
-  payload.owner = isMealProvider?._id;
+
   const result = await Kitchen.create(modifiedData);
   if (!result) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");

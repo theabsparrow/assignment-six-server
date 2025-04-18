@@ -56,13 +56,7 @@ const updateCustomerInfo = async (
   if (payload?.name) {
     payload.name = capitalizeFirstWord(payload.name);
   }
-  const {
-    addFoodPreference,
-    removeFoodPreference,
-    addAllergies,
-    removeAllergies,
-    ...remainingData
-  } = payload;
+  const { addAllergies, removeAllergies, ...remainingData } = payload;
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
@@ -73,27 +67,6 @@ const updateCustomerInfo = async (
     );
     if (!updateBasicData) {
       throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
-    }
-    if (removeFoodPreference && removeFoodPreference.length > 0) {
-      const updated = await Customer.findOneAndUpdate(
-        { user: id },
-        { $pull: { foodPreference: removeFoodPreference } },
-        { session, new: true, runValidators: true }
-      );
-      if (!updated) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
-      }
-    }
-
-    if (addFoodPreference && addFoodPreference.length > 0) {
-      const updated = await Customer.findOneAndUpdate(
-        { user: id },
-        { $addToSet: { foodPreference: { $each: addFoodPreference } } },
-        { session, new: true, runValidators: true }
-      );
-      if (!updated) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
-      }
     }
 
     if (removeAllergies && removeAllergies.length > 0) {

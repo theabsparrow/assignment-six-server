@@ -1,6 +1,10 @@
 import { z } from "zod";
-import { kitchenType, weekDays } from "./kitchen.const";
-import { mealTime } from "../customer/customer.const";
+import {
+  foodPreferance,
+  kitchenType,
+  mealTime,
+  weekDays,
+} from "./kitchen.const";
 
 const kitchenValidationSchema = z.object({
   kitchenName: z
@@ -25,6 +29,9 @@ const kitchenValidationSchema = z.object({
   foodHandlerExperience: z
     .string({ required_error: "Experience is required" })
     .min(1, "Experience is required"),
+  foodPreference: z
+    .array(z.enum([...foodPreferance] as [string, ...string[]]))
+    .optional(),
   mealTimePerDay: z.enum([...mealTime] as [string, ...string[]]),
   cookingDays: z.enum([...weekDays] as [string, ...string[]]),
   specialEquipments: z.array(z.string()).optional(),

@@ -1,8 +1,10 @@
-import { FoodPreferenceOption, TMealTime } from "./mealPlanner.interface";
+import { TDietaryPreference } from "./mealPlanner.interface";
 
-export const mealTime: TMealTime[] = ["Breakfast", "Lunch", "Dinner"] as const;
-export const foodPreferance: FoodPreferenceOption[] = [
-  "Veg",
-  "Non-Veg",
-  "Mixed",
-] as const;
+export const diateryPreference: TDietaryPreference[] = [
+  "Vegan",
+  "Vegetarian",
+  "Keto",
+  "Paleo",
+  "Gluten-Free",
+  "Regular",
+];

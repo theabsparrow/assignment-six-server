@@ -1,56 +1,59 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { NextFunction, Request, Response } from "express";
-import { catchAsync } from "../../utills/catchAsync";
 import { JwtPayload } from "jsonwebtoken";
-import { kitchenService } from "./kitchen.service";
+import { catchAsync } from "../../utills/catchAsync";
+import { NextFunction, Request, Response } from "express";
+import { mealPlannerService } from "./mealplanner.service";
 import { sendResponse } from "../../utills/sendResponse";
 import { StatusCodes } from "http-status-codes";
 
-const createKitchen = catchAsync(
+const createMealPlanner = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
     const payload = req.body;
     const { userId } = user as JwtPayload;
-    const result = await kitchenService.createKitchen(userId, payload);
+    const result = await mealPlannerService.createMealPlan(payload, userId);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,
-      message: "kitchen created successfully",
+      message: "meal planner created successfully",
       data: result,
     });
   }
 );
 
-const getAllKitchen = catchAsync(
+const getMyPlans = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query = req.query;
+    const user = req.user;
+    const { userId } = user;
+    const result = await mealPlannerService.getMyMealPlans(userId, query);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "plans are retrived successfully",
+      data: result,
+    });
+  }
+);
+
+const getASingleMyPlan = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    const query = req.query;
-    const result = await kitchenService.getAllKitchen(user, query);
+    const id = req.params.id;
+    const result = await mealPlannerService.getASingleMyPlan(user, id);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "kitchens are retrived successfully",
+      message: "plan is retrived successfully",
       data: result,
     });
   }
 );
 
-const getASingleKitchen = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const id = req.params.id;
-    const result = await kitchenService.getASingleKitchen(id);
-    sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.OK,
-      message: "kitchen information is retrived successfully",
-      data: result,
-    });
-  }
-);
-export const kitchenController = {
-  createKitchen,
-  getAllKitchen,
-  getASingleKitchen,
+export const mealPlannerController = {
+  createMealPlanner,
+  getMyPlans,
+  getASingleMyPlan,
 };

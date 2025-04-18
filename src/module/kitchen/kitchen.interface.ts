@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
-import { TMealTime } from "../customer/customer.interface";
 
+export type TMealTime = "Breakfast" | "Lunch" | "Dinner";
 export type TCookingDay =
   | "Sunday"
   | "Monday"
@@ -9,6 +9,8 @@ export type TCookingDay =
   | "Thursday"
   | "Friday"
   | "Saturday";
+
+export type FoodPreferenceOption = "Veg" | "Non-Veg" | "Mixed";
 
 export type TKitchen = {
   kitchenName: string;
@@ -21,6 +23,7 @@ export type TKitchen = {
   hygieneCertified: boolean;
   licenseOrCertificate?: string;
   foodHandlerExperience: string;
+  foodPreference?: FoodPreferenceOption[];
   mealTimePerDay: TMealTime[];
   cookingDays: TCookingDay[];
   specialEquipments?: string[];

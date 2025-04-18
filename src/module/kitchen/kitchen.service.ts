@@ -8,11 +8,13 @@ import { JwtPayload } from "jsonwebtoken";
 import { USER_ROLE } from "../user/user.const";
 
 const createKitchen = async (id: string, payload: TKitchen) => {
-  const isMealProvider = await MealProvider.findOne({ user: id });
+  const isMealProvider = await MealProvider.findOne({ user: id }).select(
+    "eamil"
+  );
   if (!isMealProvider) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
   }
-  const isKitchenExist = await Kitchen.findOne({ owner: id });
+  const isKitchenExist = await Kitchen.findOne({ owner: isMealProvider?._id });
   if (isKitchenExist) {
     throw new AppError(
       StatusCodes.CONFLICT,

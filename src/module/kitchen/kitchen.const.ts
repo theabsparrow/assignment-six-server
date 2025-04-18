@@ -1,4 +1,8 @@
-import { TCookingDay } from "./kitchen.interface";
+import {
+  FoodPreferenceOption,
+  TCookingDay,
+  TMealTime,
+} from "./kitchen.interface";
 
 export const weekDays: TCookingDay[] = [
   "Sunday",
@@ -11,3 +15,11 @@ export const weekDays: TCookingDay[] = [
 ] as const;
 
 export const kitchenType: string[] = ["Home-based", "Commercial"];
+
+export const mealTime: TMealTime[] = ["Breakfast", "Lunch", "Dinner"] as const;
+
+export const foodPreferance: FoodPreferenceOption[] = [
+  "Veg",
+  "Non-Veg",
+  "Mixed",
+] as const;

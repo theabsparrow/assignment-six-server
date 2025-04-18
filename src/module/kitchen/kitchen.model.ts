@@ -1,7 +1,6 @@
 import { Schema, model } from "mongoose";
 import { TKitchen } from "./kitchen.interface";
-import { mealTime } from "../customer/customer.const";
-import { weekDays } from "./kitchen.const";
+import { foodPreferance, mealTime, weekDays } from "./kitchen.const";
 
 const KitchenSchema = new Schema<TKitchen>(
   {
@@ -45,6 +44,11 @@ const KitchenSchema = new Schema<TKitchen>(
         },
         message: "There must be at least 1 and at most 5 kitchen photos.",
       },
+    },
+    foodPreference: {
+      type: [String],
+      enum: foodPreferance,
+      required: [true, "food preference is required"],
     },
     hygieneCertified: {
       type: Boolean,

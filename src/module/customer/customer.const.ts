@@ -13,7 +13,5 @@ export const allergyOptions: TAlergies[] = [
   "None",
 ] as const;
 
-export const mealTime = ["Breakfast", "Lunch", "Dinner"] as const;
-export const foodPreferance = ["Veg", "Non-Veg", "Mixed"] as const;
 export const gender = ["Male", "Female", "Other"] as const;
 export const searchableFields: string[] = ["name", "phone", "email"];

@@ -1,11 +1,6 @@
 import { model, Schema } from "mongoose";
 import { TCustomer } from "./customer.interface";
-import {
-  allergyOptions,
-  foodPreferance,
-  gender,
-  mealTime,
-} from "./customer.const";
+import { allergyOptions, gender } from "./customer.const";
 
 const customerSchema = new Schema<TCustomer>(
   {
@@ -30,14 +25,6 @@ const customerSchema = new Schema<TCustomer>(
       type: String,
       required: [true, "address is required"],
       trim: true,
-    },
-    preferredMealTime: {
-      type: String,
-      enum: mealTime,
-    },
-    foodPreference: {
-      type: [String],
-      enum: foodPreferance,
     },
     allergies: {
       type: [String],

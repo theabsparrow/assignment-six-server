@@ -1,10 +1,5 @@
 import { z } from "zod";
-import {
-  allergyOptions,
-  foodPreferance,
-  gender,
-  mealTime,
-} from "./customer.const";
+import { allergyOptions, gender } from "./customer.const";
 
 const customerValidationSchema = z.object({
   user: z.object({
@@ -28,12 +23,6 @@ const customerValidationSchema = z.object({
     name: z.string().min(1, "Name is required"),
     profileImage: z.string().url().optional(),
     address: z.string().min(1, "Address is required"),
-    preferredMealTime: z
-      .enum([...mealTime] as [string, ...string[]])
-      .optional(),
-    foodPreference: z
-      .array(z.enum([...foodPreferance] as [string, ...string[]]))
-      .optional(),
     allergies: z
       .array(z.enum([...allergyOptions] as [string, ...string[]]))
       .optional(),
@@ -48,13 +37,6 @@ const updateCustomerInfoValidationSchema = z.object({
   address: z
     .string()
     .min(1, "Address should be at least one character")
-    .optional(),
-  preferredMealTime: z.enum([...mealTime] as [string, ...string[]]).optional(),
-  addFoodPreference: z
-    .array(z.enum([...foodPreferance] as [string, ...string[]]))
-    .optional(),
-  removeFoodPreference: z
-    .array(z.enum([...foodPreferance] as [string, ...string[]]))
     .optional(),
   addAllergies: z
     .array(z.enum([...allergyOptions] as [string, ...string[]]))

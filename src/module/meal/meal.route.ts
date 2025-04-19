@@ -24,4 +24,10 @@ router.get(
   ),
   mealController.getASingleMeal
 );
+router.patch(
+  "/update-meal/:id",
+  auth(USER_ROLE["meal provider"]),
+  validateRequest(mealValidation.updateMealValidationSchema),
+  mealController.updateMealInfo
+);
 export const mealRoute = router;

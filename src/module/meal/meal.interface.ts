@@ -15,7 +15,8 @@ export type TcuisineType =
   | "Continental"
   | "Italian"
   | "Thai"
-  | "American";
+  | "American"
+  | "Mediterranean";
 
 export type TPortionSize = "Small" | "Medium" | "Large";
 export type TMeal = {
@@ -38,3 +39,16 @@ export type TMeal = {
   isAvailable: boolean;
   isDeleted: boolean;
 };
+
+export interface TExtendedMeals extends TMeal {
+  addDietaryPreferences: TDietaryPreference[];
+  removeDietaryPreferences: TDietaryPreference[];
+  addIngredients: string[];
+  removeIngredients: string[];
+  addAllergies: TAlergies[];
+  removeAllergies: TAlergies[];
+  addAvailableDays: TCookingDay[];
+  removeAvailableDays: TCookingDay[];
+  addAvailableTime: TMealTime[];
+  removeAvailableTime: TMealTime[];
+}

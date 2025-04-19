@@ -8,6 +8,7 @@ export const cuisineType: TcuisineType[] = [
   "Italian",
   "Thai",
   "American",
+  "Mediterranean",
 ];
 
 export const foodCategory: TFoodCategory[] = [

@@ -6,6 +6,7 @@ import { catchAsync } from "../../utills/catchAsync";
 import { sendResponse } from "../../utills/sendResponse";
 import { NextFunction, Request, Response } from "express";
 import { mealService } from "./meal.service";
+import { JwtPayload } from "jsonwebtoken";
 
 const createMeal = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -47,8 +48,25 @@ const getASingleMeal = catchAsync(
   }
 );
 
+const updateMealInfo = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const payload = req.body;
+    const user = req.user;
+    const { userId } = user as JwtPayload;
+    const result = await mealService.updateMeal({ payload, id, userId });
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "meal info is updated successfully",
+      data: result,
+    });
+  }
+);
+
 export const mealController = {
   createMeal,
   getAllMeals,
   getASingleMeal,
+  updateMealInfo,
 };

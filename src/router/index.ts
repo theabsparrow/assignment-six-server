@@ -6,6 +6,7 @@ import { kitchenRoute } from "../module/kitchen/kitchen.route";
 import { mealPlannerRoute } from "../module/mealPlanner/mealPlanner.route";
 import { mealRoute } from "../module/meal/meal.route";
 import { mealProviderRoute } from "../module/mealProvider/mealProvider.route";
+import { ratingRoute } from "../module/rating/rating.route";
 
 const router = Router();
 
@@ -37,6 +38,10 @@ const moduleRoutes = [
   {
     path: "/meal",
     route: mealRoute,
+  },
+  {
+    path: "/rating",
+    route: ratingRoute,
   },
 ];
 

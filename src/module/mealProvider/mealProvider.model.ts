@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 import { TMealProvider } from "./mealProvider.interface";
 import { gender } from "../customer/customer.const";
 
-const mealProviderSchema = new Schema<TMealProvider>(
+const MealProviderSchema = new Schema<TMealProvider>(
   {
     user: {
       type: Schema.Types.ObjectId,
@@ -65,5 +65,5 @@ const mealProviderSchema = new Schema<TMealProvider>(
 
 export const MealProvider = model<TMealProvider>(
   "MealProvider",
-  mealProviderSchema
+  MealProviderSchema
 );

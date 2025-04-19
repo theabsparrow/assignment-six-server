@@ -2,7 +2,7 @@ import { model, Schema } from "mongoose";
 import { TCustomer } from "./customer.interface";
 import { allergyOptions, gender } from "./customer.const";
 
-const customerSchema = new Schema<TCustomer>(
+const CustomerSchema = new Schema<TCustomer>(
   {
     user: {
       type: Schema.Types.ObjectId,
@@ -50,4 +50,4 @@ const customerSchema = new Schema<TCustomer>(
   }
 );
 
-export const Customer = model<TCustomer>("Customer", customerSchema);
+export const Customer = model<TCustomer>("Customer", CustomerSchema);

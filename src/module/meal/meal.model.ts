@@ -5,7 +5,7 @@ import { cuisineType, foodCategory, portionSize } from "./meal.const";
 import { foodPreferance, mealTime, weekDays } from "../kitchen/kitchen.const";
 import { allergyOptions } from "../customer/customer.const";
 
-const mealSchema = new Schema<TMeal>(
+const MealSchema = new Schema<TMeal>(
   {
     kitchen: {
       type: Schema.Types.ObjectId,
@@ -95,4 +95,4 @@ const mealSchema = new Schema<TMeal>(
   }
 );
 
-export const Meal = model<TMeal>("Meal", mealSchema);
+export const Meal = model<TMeal>("Meal", MealSchema);

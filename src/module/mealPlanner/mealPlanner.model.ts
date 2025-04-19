@@ -3,7 +3,7 @@ import { TMealPlanner } from "./mealPlanner.interface";
 import { foodPreferance, mealTime, weekDays } from "../kitchen/kitchen.const";
 import { diateryPreference } from "./mealPlanner.const";
 
-const mealPlannerSchema = new Schema<TMealPlanner>(
+const MealPlannerSchema = new Schema<TMealPlanner>(
   {
     title: {
       type: String,
@@ -55,5 +55,5 @@ const mealPlannerSchema = new Schema<TMealPlanner>(
 
 export const MealPlanner = model<TMealPlanner>(
   "MealPlanner",
-  mealPlannerSchema
+  MealPlannerSchema
 );

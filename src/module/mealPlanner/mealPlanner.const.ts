@@ -7,4 +7,7 @@ export const diateryPreference: TDietaryPreference[] = [
   "Paleo",
   "Gluten-Free",
   "Regular",
+  "Halal",
+  "Low-Carb",
+  "Diabetic-Friendly",
 ];

@@ -11,7 +11,10 @@ export type TDietaryPreference =
   | "Keto"
   | "Paleo"
   | "Gluten-Free"
-  | "Regular";
+  | "Regular"
+  | "Halal"
+  | "Low-Carb"
+  | "Diabetic-Friendly";
 
 export type TMealPlanner = {
   title: string;

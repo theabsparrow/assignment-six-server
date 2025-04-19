@@ -20,7 +20,7 @@ const userSchema = new Schema<TUSer>(
     password: {
       type: String,
       required: [true, "password is required"],
-      //   select: 0,
+      select: 0,
     },
     role: {
       type: String,

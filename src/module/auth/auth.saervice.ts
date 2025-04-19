@@ -85,7 +85,7 @@ const login = async (payload: TLogin) => {
 const changePassword = async (payload: TChangePassword, user: string) => {
   const { oldPassword, newPassword } = payload;
   const saltNumber = config.bcrypt_salt_round as string;
-  const isUserExist = await User.findById(user);
+  const isUserExist = await User.findById(user).select("+password");
   const userPassword = isUserExist?.password;
   const isPasswordMatched = await passwordMatching(
     oldPassword,

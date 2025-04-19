@@ -18,4 +18,8 @@ export default {
   email_sent_from: process.env.EMAIL_SENT_FROM,
   smtp_host: process.env.SMTP_HOST,
   smtp_port: process.env.SMTP_PORT,
+  super_admin_email: process.env.SUPER_ADMIN_EMAIL,
+  super_admin_phone: process.env.SUPER_ADMIN_PHONE,
+  super_admin_password: process.env.SUPER_ADMIN_PASSWORD,
+  super_admin_role: process.env.SUPER_ADMIN_ROLE,
 };

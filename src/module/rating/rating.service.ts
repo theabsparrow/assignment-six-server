@@ -61,7 +61,9 @@ const addRating = async ({
       (acc, item) => acc + item?.rating,
       0
     );
-    const avarageRating = totalRatings / allRatings?.length;
+    const avarageRating = Number(
+      (totalRatings / allRatings?.length).toFixed(1)
+    );
 
     const result = await Meal.findByIdAndUpdate(
       isMealExists?._id,

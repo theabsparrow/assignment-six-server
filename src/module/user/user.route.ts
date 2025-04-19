@@ -6,7 +6,7 @@ import { mealProviderValidation } from "../mealProvider/mealProvider.validation"
 import { auth } from "../../middlewire/auth";
 import { USER_ROLE } from "./user.const";
 import { userValidation } from "./user.validation";
-import { verifyOtpToken } from "../../middlewire/auth.verifyToken";
+import validateCookies from "../../middlewire/validateCookies";
 
 const router = Router();
 
@@ -30,6 +30,12 @@ router.get(
   ),
   userController.getMeRoute
 );
+router.patch(
+  "/change-status/:id",
+  auth(USER_ROLE.admin, USER_ROLE.superAdmin),
+  validateRequest(userValidation.updateStatusValidationSchema),
+  userController.changeUserStatus
+);
 router.delete(
   "/delete/my-account",
   auth(
@@ -45,7 +51,7 @@ router.delete(
   auth(USER_ROLE.admin, USER_ROLE.superAdmin),
   userController.deleteAccount
 );
-router.post(
+router.patch(
   "/update-info",
   auth(
     USER_ROLE.admin,
@@ -56,15 +62,16 @@ router.post(
   validateRequest(userValidation.updateEmailPhoneValidationSchema),
   userController.updatePhoneEmail
 );
-router.post(
+router.patch(
   "/verify-email",
-  verifyOtpToken(
+  auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
     USER_ROLE["meal provider"],
     USER_ROLE.superAdmin
   ),
   validateRequest(userValidation.verifyEmailValidationSchema),
+  validateCookies(userValidation.refreshToken1ValidationSchema),
   userController.verifyEmail
 );
 export const userRoute = router;

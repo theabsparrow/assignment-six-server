@@ -4,6 +4,7 @@ import { authValidation } from "./auth.validation";
 import { authController } from "./auth.controller";
 import { auth } from "../../middlewire/auth";
 import { USER_ROLE } from "../user/user.const";
+import validaterefreshToken from "../../middlewire/validateRefreshToken";
 
 const router = Router();
 
@@ -35,7 +36,7 @@ router.post(
 );
 router.post(
   "/get-token",
-  validateRequest(authValidation.refreshTokenValidationSchema),
+  validaterefreshToken(authValidation.refreshTokenValidationSchema),
   authController.generateAccessToken
 );
 router.post(

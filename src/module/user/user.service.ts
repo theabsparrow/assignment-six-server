@@ -183,12 +183,29 @@ const getMeroute = async (userId: string, userRole: string) => {
   return result;
 };
 
-const changeUserStatus = async (status: TStatus, userId: string) => {
-  const isUSer = await User.findById(userId);
-  if (isUSer && isUSer?.status === status) {
+const changeUserStatus = async ({
+  status,
+  userId,
+  role,
+}: {
+  status: TStatus;
+  userId: string;
+  role: string;
+}) => {
+  const isUSer = await User.findById(userId).select("role status");
+  if (!isUSer) {
+    throw new AppError(StatusCodes.CONFLICT, "user info not found");
+  }
+  if (isUSer?.status === status) {
     throw new AppError(
       StatusCodes.CONFLICT,
       `this user status is already ${isUSer?.status}`
+    );
+  }
+  if (isUSer?.role === USER_ROLE.admin && role === USER_ROLE.admin) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      "you can`t change an admin status"
     );
   }
   const session = await mongoose.startSession();
@@ -200,14 +217,6 @@ const changeUserStatus = async (status: TStatus, userId: string) => {
       { new: true, session, runValidators: true }
     );
     if (!result) {
-      throw new AppError(StatusCodes.BAD_REQUEST, "faild to change status");
-    }
-    const blockKitchen = await Kitchen.findOneAndUpdate(
-      { owner: result?._id },
-      { isActive: false },
-      { session, new: true, runValidators: true }
-    );
-    if (!blockKitchen) {
       throw new AppError(StatusCodes.BAD_REQUEST, "faild to change status");
     }
     await session.commitTransaction();
@@ -362,7 +371,18 @@ const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
   const { email, phone } = payload;
   let updatedNumber = null;
   if (phone) {
-    updatedNumber = User.findByIdAndUpdate(id, { phone: phone }, { new: true });
+    const isPhoneExists = await User.findOne({ phone: phone }).select("phone");
+    if (isPhoneExists) {
+      throw new AppError(
+        StatusCodes.CONFLICT,
+        "this phone number is already exists"
+      );
+    }
+    updatedNumber = await User.findByIdAndUpdate(
+      id,
+      { phone: phone },
+      { new: true }
+    );
     if (!updatedNumber) {
       throw new AppError(
         StatusCodes.BAD_REQUEST,
@@ -372,11 +392,15 @@ const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
   }
   let otpToken = null;
   if (email) {
+    const isEmailExist = await User.findOne({ email: email }).select("email");
+    if (isEmailExist) {
+      throw new AppError(StatusCodes.CONFLICT, "this email is already exists");
+    }
     const isUSer = await User.findById(id);
     const newotp = generateOTP().toString();
     const hashedOTP = await bcrypt.hash(
       newotp,
-      config.bcrypt_salt_round as string
+      Number(config.bcrypt_salt_round as string)
     );
     const jwtPayload: TJwtPayload = {
       userId: `${isUSer?._id.toString() as string} ${hashedOTP}`,
@@ -385,9 +409,10 @@ const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
     };
     otpToken = createToken(
       jwtPayload,
-      config.jwt_access_secret as string,
-      "2m"
+      config.jwt_refresh1_secret as string,
+      config.jwt_refresh1_expires_in as string
     );
+
     if (otpToken && hashedOTP) {
       const html = otpEmailTemplate(newotp);
       await sendEmail({
@@ -403,12 +428,11 @@ const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
 
 const verifyEmail = async (payload: { otp: string }, otpToken: string) => {
   const { otp } = payload;
-  const secret = config.jwt_refresh_secret as string;
+  const secret = config.jwt_refresh1_secret as string;
   const decoded = verifyToken(otpToken, secret);
   const { userId, email, userRole } = decoded as JwtPayload;
   const hashedOtp = userId.split(" ")[1];
   const id = userId.split(" ")[0];
-
   const isOtpMatched = await passwordMatching(otp, hashedOtp);
   if (!isOtpMatched) {
     throw new AppError(
@@ -419,11 +443,12 @@ const verifyEmail = async (payload: { otp: string }, otpToken: string) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const updateEmailFromUser = User.findByIdAndUpdate(
+    const updateEmailFromUser = await User.findByIdAndUpdate(
       id,
       { email: email },
       { session, new: true, runValidators: true }
     );
+
     if (!updateEmailFromUser) {
       throw new AppError(StatusCodes.BAD_REQUEST, "faild to update email");
     }

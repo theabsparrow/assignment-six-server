@@ -52,6 +52,22 @@ const getMeRoute = catchAsync(
   }
 );
 
+const changeUserStatus = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { userRole: role } = user as JwtPayload;
+    const status = req.body.status;
+    const userId = req.params.id;
+    const result = await userService.changeUserStatus({ status, userId, role });
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "status changed successfully",
+      data: result,
+    });
+  }
+);
+
 const deleteMyAccount = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
@@ -94,7 +110,9 @@ const updatePhoneEmail = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "successfully deleted account",
+      message: updatedNumber
+        ? "successfully updated phone number"
+        : "otp sent successfully",
       data: updatedNumber ? updatedNumber : " ",
     });
   }
@@ -122,4 +140,5 @@ export const userController = {
   deleteAccount,
   updatePhoneEmail,
   verifyEmail,
+  changeUserStatus,
 };

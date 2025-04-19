@@ -1,4 +1,4 @@
-import { TUSerRole } from "./user.interface";
+import { TStatus, TUSerRole } from "./user.interface";
 
 export const USER_ROLE = {
   admin: "admin",
@@ -13,3 +13,5 @@ export const userRole: TUSerRole[] = [
   "superAdmin",
   "meal provider",
 ] as const;
+
+export const status: TStatus[] = ["active", "blocked"];

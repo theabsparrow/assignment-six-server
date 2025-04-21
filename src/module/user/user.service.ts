@@ -115,6 +115,24 @@ const createMealProvider = async (
       "this phone number is already in used"
     );
   }
+  if (mealProvider?.isCertified && !mealProvider?.licenseDocument) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      "if you are certified then provied your license number"
+    );
+  }
+  if (mealProvider?.licenseDocument) {
+    const isLicenseExists = await MealProvider.findOne({
+      licenseDocument: mealProvider?.licenseDocument,
+    });
+    if (isLicenseExists) {
+      throw new AppError(
+        StatusCodes.CONFLICT,
+        "this license number is already in used"
+      );
+    }
+  }
+
   const age = calculateAge(mealProvider?.dateOfBirth);
   if (age < 18) {
     throw new AppError(

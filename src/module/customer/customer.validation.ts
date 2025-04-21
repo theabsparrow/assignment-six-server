@@ -3,7 +3,12 @@ import { allergyOptions, gender } from "./customer.const";
 
 const customerValidationSchema = z.object({
   user: z.object({
-    email: z.string().email("Invalid email").trim(),
+    email: z
+      .string({
+        required_error: "email is required",
+      })
+      .email("Invalid email")
+      .trim(),
     phone: z.string().min(1, "Phone number is required").trim(),
     password: z
       .string({

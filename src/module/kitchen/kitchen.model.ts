@@ -56,7 +56,6 @@ const KitchenSchema = new Schema<TKitchen>(
     },
     licenseOrCertificate: {
       type: String,
-      unique: true,
       trim: true,
     },
     foodHandlerExperience: {

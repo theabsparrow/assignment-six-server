@@ -51,7 +51,6 @@ const MealProviderSchema = new Schema<TMealProvider>(
     },
     licenseDocument: {
       type: String,
-      unique: true,
     },
     isDeleted: {
       type: Boolean,

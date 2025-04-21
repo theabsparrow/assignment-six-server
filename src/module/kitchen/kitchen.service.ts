@@ -17,7 +17,6 @@ const createKitchen = async (id: string, payload: TKitchen) => {
   if (!isMealProvider) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
   }
-  payload.owner = isMealProvider?._id;
   const isKitchenExist = await Kitchen.findOne({ owner: isMealProvider?._id });
   if (isKitchenExist) {
     throw new AppError(
@@ -29,7 +28,6 @@ const createKitchen = async (id: string, payload: TKitchen) => {
   const isEmailExist = await Kitchen.findOne({ email: kitchenEmail }).select(
     "email"
   );
-
   if (isEmailExist) {
     throw new AppError(StatusCodes.CONFLICT, "this email is already exists");
   }
@@ -42,17 +40,26 @@ const createKitchen = async (id: string, payload: TKitchen) => {
       "this phone number is already exists"
     );
   }
+  if (payload?.kitchenType === "Commercial" && !payload.licenseOrCertificate) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "commercial kitchen must have a license or certificate"
+    );
+  }
+  if (
+    payload?.licenseOrCertificate &&
+    payload?.licenseOrCertificate !== isMealProvider?.licenseDocument
+  ) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "your kitchen license does not matched with your license number"
+    );
+  }
+  payload.owner = isMealProvider?._id;
   const modifiedData = {
     ...payload,
     email: kitchenEmail,
   };
-  if (payload?.kitchenType === "Commercial" && !payload.licenseOrCertificate) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "commercial kitchen must have a license or certificate"
-    );
-  }
-
   const result = await Kitchen.create(modifiedData);
   if (!result) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");

@@ -1,0 +1,1111 @@
+{
+	"info": {
+		"_postman_id": "212620d9-ad96-42a0-9c28-6c1b77ffed41",
+		"name": "assignment six",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40778936"
+	},
+	"item": [
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "create customer",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user\": {\r\n    \"email\": \"bashar15@gmail.com\",\r\n    \"phone\": \"0121345622178\",\r\n    \"password\": \"Bashar15@\"\r\n  },\r\n  \"customer\": {\r\n    \"name\": \"Abul Bashar\",\r\n    \"profileImage\": \"https://example.com/images/bashar.jpg\",\r\n    \"address\": \"House #12, Road #5, Dhaka\",\r\n    \"allergies\": [\"Egg\", \"Nuts\"],\r\n    \"gender\": \"Male\",\r\n    \"dateOfBirth\": \"1998-05-10\"\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/user/register-customer",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"register-customer"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create meal provider",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"user\": {\r\n    \"email\": \"absbashar04@gmail.com\",\r\n    \"phone\": \"01864846666\",\r\n    \"password\": \"Bashar15@\"\r\n  },\r\n  \"mealProvider\": {\r\n    \"name\": \"James securea\",\r\n    \"bio\": \"Experienced meal provider with 5+ years of service.\",\r\n    \"profileImage\": \"https://example.com/profile.jpg\",\r\n    \"gender\": \"Male\",\r\n    \"dateOfBirth\": \"1990-05-10\",\r\n    \"address\": \"House #10, Road #5, Dhaka\",\r\n    \"experienceYears\": 5,\r\n    \"isCertified\": true,\r\n    \"licenseDocument\": \"2154125GFV\"\r\n\r\n  }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/user/register-mealProvider",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"register-mealProvider"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get me route",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/user/my-profile",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"my-profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\": \"active\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/user/change-status/68026082ee013b72789f72f2",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"change-status",
+								"68026082ee013b72789f72f2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update phone email",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\r\n    \"email\": \"xacksparrow04@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/user/update-info",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"update-info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "verify email",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"otp\": \"210083\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/user/verify-email",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"verify-email"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "customer",
+			"item": [
+				{
+					"name": "get all customer",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/customer/get-allCustomer?email=bashar@gmail.com&searchTerm=bashar@gmail",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"customer",
+								"get-allCustomer"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "bashar@gmail.com"
+								},
+								{
+									"key": "searchTerm",
+									"value": "bashar@gmail"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get a single customer",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/customer/68026082ee013b72789f72f4",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"customer",
+								"68026082ee013b72789f72f4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update customer info",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Levend lower\",\r\n  \"profileImage\": \"https://examplghge.com/images/bashar.jpg\",\r\n  \"address\": \"123 Gulshan more, Dhaka\",\r\n  \"addAllergies\": [\"Dairy\"],\r\n  \"removeAllergies\": [\"Peanuts\", \"Shellfish\"],\r\n  \"dateOfBirth\": \"2005-07-15\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/customer/update-info",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"customer",
+								"update-info"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "meal provider",
+			"item": [
+				{
+					"name": "get all meal provider",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/meal-provider/get-allMealProvider",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"meal-provider",
+								"get-allMealProvider"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get a single meal provide",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/meal-provider/68026132d7bae1069907da2e",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"meal-provider",
+								"68026132d7bae1069907da2e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update meal provider info",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{mealProviderToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n     \"name\": \"Justine Crimbler\",\r\n  \"bio\": \"Passionate meal provider with over 5 years of experience in preparing healthy and diverse meals.\",\r\n  \"profileImage\": \"https://example.com/meal-provider.jpg\",\r\n  \"dateOfBirth\": \"2005-04-12\",\r\n  \"address\": \"456 Food Street, dhaka, Bangladesh\",\r\n  \"experienceYears\": 5,\r\n  \"isCertified\": true,\r\n  \"licenseDocument\": \"31265465hfghfdhsd\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/meal-provider/updateInfo",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"meal-provider",
+								"updateInfo"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "meal",
+			"item": [
+				{
+					"name": "create meal",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{mealProviderToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n     \"title\": \"Grilled Chicken Salad\",\r\n  \"description\": \"A healthy grilled chicken salad with fresh vegetables and a light vinaigrette dressing.\",\r\n  \"dietaryPreferences\": [\"Keto\", \"Low-Carb\", \"Gluten-Free\"],\r\n  \"foodCategory\": \"Lunch\",\r\n  \"cuisineType\": \"American\",\r\n  \"foodPreference\": \"Non-Veg\",\r\n  \"ingredients\": [\r\n    \"Grilled Chicken Breast\",\r\n    \"Lettuce\",\r\n    \"Cucumber\",\r\n    \"Cherry Tomatoes\",\r\n    \"Olive Oil\",\r\n    \"Salt\",\r\n    \"Black Pepper\"\r\n  ],\r\n  \"allergies\": [\"Gluten\", \"Peanuts\"],\r\n  \"portionSize\": \"Medium\",\r\n  \"price\": 12.99,\r\n  \"imageUrl\": \"https://example.com/images/grilled-chicken-salad.jpg\",\r\n  \"availableDays\": [\"Monday\", \"Wednesday\", \"Friday\"],\r\n  \"availableTime\": [\"Lunch\", \"Dinner\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/meal/create-meal",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"meal",
+								"create-meal"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all meals",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/meal/get-allMeals/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"meal",
+								"get-allMeals",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get a single meal",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/meal/get-meal/68037147a4ea7fda9f52048d",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"meal",
+								"get-meal",
+								"68037147a4ea7fda9f52048d"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update meal info",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{mealProviderToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n     \"title\": \"Grilled Chicken Deluxe\",\r\n  \"description\": \"An upgraded version with feta cheese and olives.\",\r\n  \"addDietaryPreferences\": [\"Vegetarian\"],\r\n  \"removeDietaryPreferences\": [ \"Low-Carb\", \"Keto\"],\r\n  \"foodCategory\": \"Lunch\",\r\n  \"cuisineType\": \"Mediterranean\",\r\n  \"foodPreference\": \"Non-Veg\",\r\n  \"addIngredients\": [\"Feta Cheese\", \"Olives\"],\r\n  \"removeIngredients\": [\"Salt\"],\r\n  \"addAllergies\": [\"Dairy\"],\r\n  \"removeAllergies\": [\"Peanuts\"],\r\n  \"portionSize\": \"Large\",\r\n  \"price\": 12.99,\r\n  \"imageUrl\": \"https://example.com/images/grilled-chicken-salad-deluxe.jpg\",\r\n  \"addAvailableDays\": [\"Sunday\"],\r\n  \"removeAvailableDays\": [\"Monday\"],\r\n  \"addAvailableTime\": [\"Breakfast\"],\r\n  \"removeAvailableTime\": [\"Lunch\"],\r\n  \"isAvailable\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/meal/update-meal/68037147a4ea7fda9f52048d",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"meal",
+								"update-meal",
+								"68037147a4ea7fda9f52048d"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "mealProvider login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"absbashar04@gmail.com\",\r\n    \"password\": \"Bashar15@\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "customer login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"bashar15@gmail.com\",\r\n    \"password\": \"Bashar15@\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "admin login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"bashar@gmail.com\",\r\n    \"password\": \"Bashar15@\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "generate access token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/auth/get-token",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"get-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"oldPassword\": \"Abul15@\",\r\n    \"newPassword\": \"Bashar15@\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/change-password",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"change-password"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "forgetPassword",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"absbashar04@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/forget-password",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"forget-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reset password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODAyNjEzMmQ3YmFlMTA2OTkwN2RhMmMiLCJ1c2VyUm9sZSI6Im1lYWwgcHJvdmlkZXIiLCJvdHAiOiIkMmIkMDgkUXpvZmgwMi9QNzg2d3ZPWVpqMWE0LlMzWFJOa2VhRTY0U3JkSzVnZ1h3L1ouVlZTamFuekMiLCJpYXQiOjE3NDQ5ODkwOTgsImV4cCI6MTc0NDk4OTM5OH0.MUH0oiIkXAs8fozBl5Uq-8Orj8_fq-CRDaiLPulEB3M",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"otp\": \"339045\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/reset-password",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "set new pass",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODAyNjEzMmQ3YmFlMTA2OTkwN2RhMmMiLCJ1c2VyUm9sZSI6Im1lYWwgcHJvdmlkZXIiLCJpYXQiOjE3NDQ5ODkxNjEsImV4cCI6MTc0NDk4OTQ2MX0.K8JGFzXd0U0fdA-CC6dBrymU4RuPd6kCwzQ5ZSWqd94",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"newPassword\": \"Abul15@\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/set-password",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"set-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "kitchen",
+			"item": [
+				{
+					"name": "create kitchen",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{mealProviderToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"kitchenName\": \"Bashar's Home Kitchen\",\r\n  \"kitchenType\": \"Home-based\",\r\n  \"location\": \"123 Tasty Road, Dhaka, Bangladesh\",\r\n \r\n  \"phoneNumber\": \"01712345678\",\r\n  \"kitchenPhotos\": [\r\n    \"https://example.com/images/kitchen1.jpg\",\r\n    \"https://example.com/images/kitchen2.jpg\"\r\n  ],\r\n  \"hygieneCertified\": true,\r\n  \"licenseOrCertificate\": \"https://example.com/docs/license.pdf\",\r\n  \"foodHandlerExperience\": \"5 years working as a personal chef and catering events\",\r\n  \"foodPreference\": [\"Veg\", \"Non-Veg\", \"Mixed\"],\r\n  \"mealTimePerDay\": [\"Breakfast\", \"Lunch\"],\r\n  \"cookingDays\": [\"Monday\", \"Wednesday\", \"Friday\", \"Sunday\"],\r\n  \"specialEquipments\": [\"Pressure Cooker\", \"Tandoor Oven\", \"Vacuum Sealer\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/kitchen/create-kitchen",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"kitchen",
+								"create-kitchen"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all kitchen",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/kitchen/all-kitchen",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"kitchen",
+								"all-kitchen"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get a single kitchen",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/kitchen/680297f059bf277d1daec618",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"kitchen",
+								"680297f059bf277d1daec618"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update kitchen",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{mealProviderToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \r\n  \"addFoodPreference\": [\"Veg\"],\r\n\r\n  \"addMealTimePerDay\": [ \"Dinner\"],\r\n\r\n  \"addCookingDays\": [\"Sunday\"],\r\n\r\n  \"addSpecialEquipments\": [\"Air Fryer\", \"Sous Vide Machine\"]\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/kitchen/update-kitchen",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"kitchen",
+								"update-kitchen"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "meal planner",
+			"item": [
+				{
+					"name": "create meal planner",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"title\": \"Weekly Meal Planner\",\r\n  \"preferredMealTime\": [\"Breakfast\", \"Dinner\"],\r\n  \"preferredMealDay\": [\"Monday\", \"Wednesday\", \"Friday\"],\r\n  \"foodPreference\": [\"Veg\", \"Non-Veg\"],\r\n  \"dietaryPreferences\": [\"Keto\", \"Gluten-Free\"],\r\n  \"notes\": \"I prefer low-carb meals in the evening and fresh veggies in the morning. Please avoid spicy food.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/mealPlanner/create-mealPlanner",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"mealPlanner",
+								"create-mealPlanner"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get my plans",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/mealPlanner/get-myPlans?searchTerm=planner",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"mealPlanner",
+								"get-myPlans"
+							],
+							"query": [
+								{
+									"key": "searchTerm",
+									"value": "planner"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get a single my plan",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/mealPlanner/get-myPlan/6802b95880491743134abd7e",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"mealPlanner",
+								"get-myPlan",
+								"6802b95880491743134abd7e"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update my plan",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"removePreferredMealTime\": [\"Breakfast\"]\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/mealPlanner/update-plan/6802b95880491743134abd7e",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"mealPlanner",
+								"update-plan",
+								"6802b95880491743134abd7e"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "rating",
+			"item": [
+				{
+					"name": "add rating",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"rating\": 5\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/rating/add-rating/68037147a4ea7fda9f52048d",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"rating",
+								"add-rating",
+								"68037147a4ea7fda9f52048d"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "order",
+			"item": [
+				{
+					"name": "place order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{customerToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n     \"quantity\": 2,\r\n  \"price\": 250,\r\n  \"deliveryTime\": [\"Lunch\", \"Dinner\"],\r\n  \"deliveryDays\": [\"Monday\", \"Wednesday\", \"Friday\"],\r\n  \"orderType\": \"regular\",\r\n  \"startDate\": \"2025-04-17\",\r\n  \"note\": \"Please deliver on time and avoid spicy food.\",\r\n  \"deliveryAddress\": {\r\n    \"area\": \"Uttara\",\r\n    \"street\": \"Road 15\",\r\n    \"houseNo\": \"B-22\"\r\n  },\r\n  \"payment\": \"cash on delivery\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/order/place-order/68079d03012dec310f90b85b",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"order",
+								"place-order",
+								"68079d03012dec310f90b85b"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "change order status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{mealProviderToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"status\": \"Cancelled\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/order/change-status/6807aa0dd05216513982f04d",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"order",
+								"change-status",
+								"6807aa0dd05216513982f04d"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update delivery count",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{mealProviderToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/order/update-deliveryCount/680414b521dd6409e135471a",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"order",
+								"update-deliveryCount",
+								"680414b521dd6409e135471a"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

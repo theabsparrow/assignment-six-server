@@ -22,4 +22,5 @@ export default {
   super_admin_phone: process.env.SUPER_ADMIN_PHONE,
   super_admin_password: process.env.SUPER_ADMIN_PASSWORD,
   super_admin_role: process.env.SUPER_ADMIN_ROLE,
+  client_certain_route: process.env.CLIENT_CERTAIN_ROUTE,
 };

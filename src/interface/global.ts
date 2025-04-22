@@ -12,3 +12,22 @@ export type TResponse<T> = {
   meta?: TMeta;
   data: T;
 };
+
+export type TemailOrder = {
+  customerName: string;
+  customerEmail: string;
+  orderDate: string;
+  mealName: string;
+  totalAmount: number;
+  kitchenName: string;
+};
+
+export type TemailOrderStatus = {
+  customerName: string;
+  mealName: string;
+  orderStatus: string;
+  orderDate: string;
+  totalAmount: number;
+  kitchenName: string;
+  customerEmail: string;
+};

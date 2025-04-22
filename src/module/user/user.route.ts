@@ -25,7 +25,7 @@ router.get(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   userController.getMeRoute
@@ -41,7 +41,7 @@ router.delete(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   userController.deleteMyAccount
@@ -56,7 +56,7 @@ router.patch(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   validateRequest(userValidation.updateEmailPhoneValidationSchema),
@@ -67,7 +67,7 @@ router.patch(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   validateRequest(userValidation.verifyEmailValidationSchema),

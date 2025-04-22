@@ -10,6 +10,11 @@ import { USER_ROLE } from "../user/user.const";
 import mongoose from "mongoose";
 import { JwtPayload } from "jsonwebtoken";
 import { MealProvider } from "../mealProvider/mealProvider.model";
+import config from "../../config";
+import { orderEmailTemplate } from "../../utills/orderEmailTemplate";
+import { sendEmail } from "../../utills/sendEmail";
+import { TemailOrder, TemailOrderStatus } from "../../interface/global";
+import { changeStatusEmailTemplate } from "../../utills/changeStatusEmail";
 
 const createOrder = async ({
   id,
@@ -20,12 +25,22 @@ const createOrder = async ({
   userId: string;
   payload: TOrder;
 }) => {
-  const isMealExist = await Meal.findById(id).select("kitchen");
+  const isMealExist = await Meal.findById(id).select(
+    "kitchen isAvailable title"
+  );
   if (!isMealExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "this meal data not found");
   }
+
+  if (!isMealExist?.isAvailable) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "this meal is not available right now"
+    );
+  }
+
   const isKitchen = await Kitchen.findById(isMealExist?.kitchen).select(
-    "isDeleted isActive"
+    "isDeleted isActive email kitchenName"
   );
   if (!isKitchen) {
     throw new AppError(
@@ -39,6 +54,7 @@ const createOrder = async ({
       "the kitchen of the meal is unavailable"
     );
   }
+
   if (!isKitchen?.isActive) {
     throw new AppError(
       StatusCodes.NOT_FOUND,
@@ -46,7 +62,7 @@ const createOrder = async ({
     );
   }
   const isCustomerExist = await Customer.findOne({ user: userId }).select(
-    "email"
+    "email name"
   );
   if (!isCustomerExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
@@ -56,7 +72,7 @@ const createOrder = async ({
   payload.mealId = isMealExist?._id;
   payload.totalPrice = Number((payload.price * payload.quantity).toFixed(2));
   if (payload?.mealPlanner) {
-    payload.deliveryMode = "Meal planner";
+    payload.deliveryMode = "mealPlanner";
   }
   const result = await Order.create(payload);
   if (!result) {
@@ -65,7 +81,26 @@ const createOrder = async ({
   const orderInfo = await Order.findById(result?._id).populate(
     "customerId kitchenId mealId mealPlanner"
   );
-  return orderInfo;
+
+  if (result && orderInfo) {
+    const info: TemailOrder = {
+      customerName: isCustomerExist?.name,
+      customerEmail: isCustomerExist?.email,
+      orderDate: orderInfo?.startDate,
+      kitchenName: isKitchen?.kitchenName,
+      mealName: isMealExist?.title,
+      totalAmount: orderInfo?.totalPrice,
+    };
+    const link = `${config.client_certain_route}/mealProvider/${result?._id}`;
+    const html = orderEmailTemplate(link, info);
+    await sendEmail({
+      to: isKitchen?.email,
+      html,
+      subject: `${isMealExist?.title} order is placed`,
+      text: "check this order to know more about this",
+    });
+    return orderInfo;
+  }
 };
 
 const changeOrderStatus = async ({
@@ -78,6 +113,8 @@ const changeOrderStatus = async ({
   status: TOrderStatus;
 }) => {
   const { userRole, userId } = user;
+  const info: Partial<TemailOrderStatus> = {};
+
   const isOrderExists = await Order.findById(id);
   if (!isOrderExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "order data not found");
@@ -111,9 +148,19 @@ const changeOrderStatus = async ({
     );
   }
 
+  const mealName = await Meal.findById(isOrderExists?.mealId).select(
+    "title isAvailable"
+  );
+  if (!mealName) {
+    throw new AppError(StatusCodes.NOT_FOUND, "meal data not found");
+  }
+  if (!mealName?.isAvailable) {
+    throw new AppError(StatusCodes.NOT_FOUND, "meal data not found");
+  }
+
   if (userRole === USER_ROLE.customer) {
     const isCustomerExist = await Customer.findOne({ user: userId }).select(
-      "email"
+      "email name"
     );
     if (!isCustomerExist) {
       throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
@@ -126,9 +173,11 @@ const changeOrderStatus = async ({
         "you can`t cancell this order"
       );
     }
+    info.customerName = isCustomerExist?.name;
+    info.customerEmail = isCustomerExist?.email;
   }
 
-  if (userRole === USER_ROLE["meal provider"]) {
+  if (userRole === USER_ROLE.mealProvider) {
     const isMealProviderExist = await MealProvider.findOne({
       user: userId,
     }).select("email");
@@ -137,7 +186,7 @@ const changeOrderStatus = async ({
     }
     const isKitchenExists = await Kitchen.findOne({
       owner: isMealProviderExist?._id,
-    }).select("owner");
+    }).select("owner kitchenName");
     if (!isKitchenExists) {
       throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not found");
     }
@@ -149,6 +198,7 @@ const changeOrderStatus = async ({
         "you can`t change the status of this order"
       );
     }
+    info.kitchenName = isKitchenExists?.kitchenName;
   }
 
   const session = await mongoose.startSession();
@@ -181,6 +231,33 @@ const changeOrderStatus = async ({
     }
     await session.commitTransaction();
     await session.endSession();
+    if (
+      userRole === USER_ROLE.admin ||
+      userRole === USER_ROLE.mealProvider ||
+      userRole === USER_ROLE.superAdmin
+    ) {
+      if (status === "Cancelled" || status === "Confirmed") {
+        info.mealName = mealName?.title;
+        info.orderStatus = status;
+        info.orderDate = isOrderExists?.startDate;
+        info.totalAmount = isOrderExists?.totalPrice;
+        const link = `${config.client_certain_route}/meals}`;
+        const html = changeStatusEmailTemplate(link, info as TemailOrderStatus);
+        const emailRespnse = await sendEmail({
+          to: info?.customerEmail as string,
+          html,
+          subject: `${mealName?.title} order is placed`,
+          text: "check this order to know more about this",
+        });
+        if (!emailRespnse.accepted.length) {
+          throw new AppError(
+            StatusCodes.BAD_REQUEST,
+            `faild to send email to the customer`
+          );
+        }
+      }
+    }
+
     const result = await Order.findById(isOrderExists?._id);
     return result;
   } catch (err: any) {
@@ -214,7 +291,7 @@ const updateDeliveryCount = async (id: string, user: JwtPayload) => {
     );
   }
 
-  if (userRole === USER_ROLE["meal provider"]) {
+  if (userRole === USER_ROLE.mealProvider) {
     const isMealProviderExist = await MealProvider.findOne({
       user: userId,
     }).select("email");

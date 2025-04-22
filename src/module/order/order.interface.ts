@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import { TCookingDay, TMealTime } from "../kitchen/kitchen.interface";
 
 export type TOrderType = "once" | "regular";
-export type TDeliveryMode = "Meal planner" | "manual";
+export type TDeliveryMode = "mealPlanner" | "manual";
 export type TOrderStatus = "Pending" | "Confirmed" | "Delivered" | "Cancelled";
 export type TDeliveryAddress = {
   area: string;

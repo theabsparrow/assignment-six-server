@@ -31,7 +31,10 @@ const MealProviderSchema = new Schema<TMealProvider>(
     address: {
       type: String,
       required: [true, "address is required"],
-      trim: true,
+    },
+    hasKitchen: {
+      type: Boolean,
+      default: false,
     },
     bio: {
       type: String,

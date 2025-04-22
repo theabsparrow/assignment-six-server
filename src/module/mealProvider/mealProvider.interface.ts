@@ -10,6 +10,7 @@ export type TMealProvider = {
   gender: TGender;
   dateOfBirth: string;
   address: string;
+  hasKitchen: boolean;
   experienceYears?: number;
   isCertified: boolean;
   licenseDocument?: string;

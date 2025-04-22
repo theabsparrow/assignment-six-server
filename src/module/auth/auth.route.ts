@@ -18,7 +18,7 @@ router.post(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   authController.logout
@@ -28,7 +28,7 @@ router.post(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   validateRequest(authValidation.passwordChangedValidationSchema),
@@ -49,7 +49,7 @@ router.post(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   validateRequest(authValidation.resetPasswordValidationSchema),
@@ -60,7 +60,7 @@ router.patch(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   validateRequest(authValidation.setNewPasswordValidationSchema),

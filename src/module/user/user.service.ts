@@ -124,6 +124,7 @@ const createMealProvider = async (
   if (mealProvider?.licenseDocument) {
     const isLicenseExists = await MealProvider.findOne({
       licenseDocument: mealProvider?.licenseDocument,
+      isDeleted: false,
     });
     if (isLicenseExists) {
       throw new AppError(
@@ -143,7 +144,7 @@ const createMealProvider = async (
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    userData.role = USER_ROLE["meal provider"];
+    userData.role = USER_ROLE.mealProvider;
     const userInfo = await User.create([userData], { session });
     if (!userInfo.length) {
       throw new AppError(StatusCodes.BAD_REQUEST, "user regestration faild");
@@ -189,7 +190,7 @@ const getMeroute = async (userId: string, userRole: string) => {
   if (userRole === USER_ROLE.customer || userRole === USER_ROLE.admin) {
     result = await Customer.findOne({ user: userId }).populate("user");
   }
-  if (userRole === USER_ROLE["meal provider"]) {
+  if (userRole === USER_ROLE.mealProvider) {
     result = await MealProvider.findOne({ user: userId }).populate("user");
   }
   if (userRole === USER_ROLE.superAdmin) {
@@ -265,7 +266,7 @@ const dleteMyAccount = async (id: string) => {
     const role = deleteFromUser?.role;
     const email = deleteFromUser?.email;
     let deleteAccount;
-    if (role === USER_ROLE["meal provider"]) {
+    if (role === USER_ROLE.mealProvider) {
       deleteAccount = await MealProvider.findOneAndUpdate(
         { email: email },
         { isDeleted: true },
@@ -273,7 +274,7 @@ const dleteMyAccount = async (id: string) => {
       );
     }
 
-    if (role === USER_ROLE["meal provider"] && deleteAccount) {
+    if (role === USER_ROLE.mealProvider && deleteAccount) {
       const result = await Kitchen.findOneAndUpdate(
         { owner: deleteAccount?._id },
         { isDeleted: true },
@@ -340,7 +341,7 @@ const deleteAccount = async (id: string, role: string) => {
     const email = deleteFromUser?.email;
 
     let deleteAccount;
-    if (role === USER_ROLE["meal provider"]) {
+    if (role === USER_ROLE.mealProvider) {
       deleteAccount = await MealProvider.findOneAndUpdate(
         { email: email },
         { isDeleted: true },
@@ -348,7 +349,7 @@ const deleteAccount = async (id: string, role: string) => {
       );
     }
 
-    if (role === USER_ROLE["meal provider"] && deleteAccount) {
+    if (role === USER_ROLE.mealProvider && deleteAccount) {
       const result = await Kitchen.findOneAndUpdate(
         { owner: deleteAccount?._id },
         { isDeleted: true },
@@ -471,7 +472,7 @@ const verifyEmail = async (payload: { otp: string }, otpToken: string) => {
       throw new AppError(StatusCodes.BAD_REQUEST, "faild to update email");
     }
 
-    if (userRole === USER_ROLE["meal provider"]) {
+    if (userRole === USER_ROLE.mealProvider) {
       const updateMealProviderEmail = await MealProvider.findOneAndUpdate(
         { user: id },
         { email: email },

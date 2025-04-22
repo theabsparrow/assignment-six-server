@@ -4,14 +4,14 @@ export const USER_ROLE = {
   admin: "admin",
   customer: "customer",
   superAdmin: "superAdmin",
-  "meal provider": "meal provider",
+  mealProvider: "mealProvider",
 } as const;
 
 export const userRole: TUSerRole[] = [
   "admin",
   "customer",
   "superAdmin",
-  "meal provider",
+  "mealProvider",
 ] as const;
 
 export const status: TStatus[] = ["active", "blocked"];

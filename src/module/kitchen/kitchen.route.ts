@@ -8,7 +8,7 @@ import { kitchenController } from "./kitchen.controller";
 const router = Router();
 router.post(
   "/create-kitchen",
-  auth(USER_ROLE["meal provider"]),
+  auth(USER_ROLE.mealProvider),
   validateRequest(kitchenValidation.kitchenValidationSchema),
   kitchenController.createKitchen
 );
@@ -17,7 +17,7 @@ router.get(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   kitchenController.getAllKitchen
@@ -27,14 +27,14 @@ router.get(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   kitchenController.getASingleKitchen
 );
 router.patch(
   "/update-kitchen",
-  auth(USER_ROLE["meal provider"]),
+  auth(USER_ROLE.mealProvider),
   validateRequest(kitchenValidation.updateKitchenValidationSchema),
   kitchenController.updateKitchenInfo
 );

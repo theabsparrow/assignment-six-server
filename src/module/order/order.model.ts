@@ -67,7 +67,7 @@ const OrderSchema = new Schema<TOrder>(
     },
     deliveryMode: {
       type: String,
-      enum: ["Meal planner", "manual"],
+      enum: ["mealPlanner", "manual"],
       default: "manual",
     },
     deliveryDays: {

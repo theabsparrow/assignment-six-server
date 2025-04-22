@@ -17,7 +17,7 @@ router.patch(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   validateRequest(orderValidation.changeOrderStatusValidationSchema),
@@ -25,7 +25,7 @@ router.patch(
 );
 router.patch(
   "/update-deliveryCount/:id",
-  auth(USER_ROLE.admin, USER_ROLE["meal provider"], USER_ROLE.superAdmin),
+  auth(USER_ROLE.admin, USER_ROLE.mealProvider, USER_ROLE.superAdmin),
   orderController.updateDeliveryCount
 );
 export const orderRoute = router;

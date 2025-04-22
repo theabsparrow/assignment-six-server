@@ -9,7 +9,7 @@ const router = Router();
 
 router.post(
   "/create-meal",
-  auth(USER_ROLE["meal provider"]),
+  auth(USER_ROLE.mealProvider),
   validateRequest(mealValidation.mealValidationSchema),
   mealController.createMeal
 );
@@ -19,14 +19,14 @@ router.get(
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
-    USER_ROLE["meal provider"],
+    USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   mealController.getASingleMeal
 );
 router.patch(
   "/update-meal/:id",
-  auth(USER_ROLE["meal provider"]),
+  auth(USER_ROLE.mealProvider),
   validateRequest(mealValidation.updateMealValidationSchema),
   mealController.updateMealInfo
 );

@@ -46,25 +46,44 @@ const createKitchen = async (id: string, payload: TKitchen) => {
       "commercial kitchen must have a license or certificate"
     );
   }
-  if (
-    payload?.licenseOrCertificate &&
-    payload?.licenseOrCertificate !== isMealProvider?.licenseDocument
-  ) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "your kitchen license does not matched with your license number"
-    );
-  }
+  // if (
+  //   payload?.licenseOrCertificate &&
+  //   payload?.licenseOrCertificate !== isMealProvider?.licenseDocument
+  // ) {
+  //   throw new AppError(
+  //     StatusCodes.BAD_REQUEST,
+  //     "your kitchen license does not matched with your license number"
+  //   );
+  // }
   payload.owner = isMealProvider?._id;
   const modifiedData = {
     ...payload,
     email: kitchenEmail,
   };
-  const result = await Kitchen.create(modifiedData);
-  if (!result) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const result = await Kitchen.create([modifiedData], { session });
+    if (!result.length) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+    }
+
+    const updateMealProvider = await MealProvider.findByIdAndUpdate(
+      isMealProvider?._id,
+      { hasKitchen: true },
+      { new: true, session, runValidators: true }
+    );
+    if (!updateMealProvider) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    return result[0];
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(StatusCodes.BAD_REQUEST, err);
   }
-  return result;
 };
 
 const getAllKitchen = async (
@@ -76,7 +95,7 @@ const getAllKitchen = async (
   const filter: Record<string, unknown> = {};
   if (
     userRole === USER_ROLE.customer ||
-    userRole === USER_ROLE["meal provider"]
+    userRole === USER_ROLE["mealProvider"]
   ) {
     filter.isDeleted = false;
     filter.isActive = true;

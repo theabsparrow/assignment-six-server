@@ -4,11 +4,11 @@ This is an advance backend application with rest apis built with the powerfull t
 
 ---
 
-## **Live Demo server site** : mealbox-server-kappa.vercel.app
+## **Live Demo server site** : (https://mealbox-server-kappa.vercel.app/)
 
-## **api common inception** : mealbox-server-kappa.vercel.app/api/v1
+## **api common inception** : (https://mealbox-server-kappa.vercel.app/)
 
-## **client site live link** : https://lambo-car-frontend.vercel.app/
+## **client site live link** : https://mealbx-client.vercel.app/
 
 ## **client site github repo** : https://github.com/theabsparrow/assignment-six-client.git
 

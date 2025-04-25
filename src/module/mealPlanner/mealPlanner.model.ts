@@ -26,7 +26,7 @@ const MealPlannerSchema = new Schema<TMealPlanner>(
       required: [true, "meal day is required"],
     },
     foodPreference: {
-      type: [String],
+      type: String,
       enum: foodPreferance,
       required: [true, "food preference is required"],
     },

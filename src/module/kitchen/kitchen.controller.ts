@@ -50,6 +50,20 @@ const getASingleKitchen = catchAsync(
   }
 );
 
+const getMyKitchen = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { userId } = user as JwtPayload;
+    const result = await kitchenService.getMyKitchen(userId);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "kitchen information is retrived successfully",
+      data: result,
+    });
+  }
+);
+
 const updateKitchenInfo = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const payload = req.body;
@@ -69,4 +83,5 @@ export const kitchenController = {
   getAllKitchen,
   getASingleKitchen,
   updateKitchenInfo,
+  getMyKitchen,
 };

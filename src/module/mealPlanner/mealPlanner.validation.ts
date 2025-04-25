@@ -10,13 +10,13 @@ const mealPlannerValidationSchema = z.object({
     .min(1, "title is required"),
   preferredMealTime: z.array(z.enum([...mealTime] as [string, ...string[]])),
   preferredMealDay: z.array(z.enum([...weekDays] as [string, ...string[]])),
-  foodPreference: z.array(z.enum([...foodPreferance] as [string, ...string[]])),
+  foodPreference: z.enum([...foodPreferance] as [string, ...string[]]),
   dietaryPreferences: z.array(
     z.enum([...diateryPreference] as [string, ...string[]])
   ),
   notes: z
     .string({
-      required_error: "title is required",
+      required_error: "note is required",
     })
     .min(1, "title is required"),
 });

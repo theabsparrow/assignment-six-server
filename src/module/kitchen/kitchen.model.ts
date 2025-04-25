@@ -36,14 +36,8 @@ const KitchenSchema = new Schema<TKitchen>(
       trim: true,
     },
     kitchenPhotos: {
-      type: [String],
+      type: String,
       required: [true, "kitchen photo is required"],
-      validate: {
-        validator: function (val: string[]) {
-          return val.length >= 1 && val.length <= 5;
-        },
-        message: "There must be at least 1 and at most 5 kitchen photos.",
-      },
     },
     foodPreference: {
       type: [String],

@@ -186,19 +186,21 @@ const createMealProvider = async (
 };
 
 const getMeroute = async (userId: string, userRole: string) => {
-  let result = null;
-  if (userRole === USER_ROLE.customer || userRole === USER_ROLE.admin) {
-    result = await Customer.findOne({ user: userId }).populate("user");
-  }
-  if (userRole === USER_ROLE.mealProvider) {
-    result = await MealProvider.findOne({ user: userId }).populate("user");
-  }
-  if (userRole === USER_ROLE.superAdmin) {
-    result = await User.findById(userId);
-  }
-  if (!result) {
+  const user = await User.findById(userId);
+  if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, "data not available");
   }
+  let userdata = null;
+  if (userRole === USER_ROLE.customer || userRole === USER_ROLE.admin) {
+    userdata = await Customer.findOne({ user: userId });
+  }
+  if (userRole === USER_ROLE.mealProvider) {
+    userdata = await MealProvider.findOne({ user: userId });
+  }
+  if (!userdata) {
+    throw new AppError(StatusCodes.NOT_FOUND, "data not available");
+  }
+  const result = { user, userdata };
   return result;
 };
 

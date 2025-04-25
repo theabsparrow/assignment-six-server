@@ -40,7 +40,6 @@ const updateCustomerInfo = catchAsync(
     const user = req.user;
     const { userId } = user as JwtPayload;
     const payload = req.body;
-
     const result = await customerService.updateCustomerInfo(userId, payload);
     sendResponse(res, {
       success: true,

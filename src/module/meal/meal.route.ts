@@ -14,16 +14,7 @@ router.post(
   mealController.createMeal
 );
 router.get("/get-allMeals", mealController.getAllMeals);
-router.get(
-  "/get-meal/:id",
-  auth(
-    USER_ROLE.admin,
-    USER_ROLE.customer,
-    USER_ROLE.mealProvider,
-    USER_ROLE.superAdmin
-  ),
-  mealController.getASingleMeal
-);
+router.get("/get-meal/:id", mealController.getASingleMeal);
 router.patch(
   "/update-meal/:id",
   auth(USER_ROLE.mealProvider),

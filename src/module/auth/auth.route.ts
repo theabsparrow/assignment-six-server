@@ -4,7 +4,8 @@ import { authValidation } from "./auth.validation";
 import { authController } from "./auth.controller";
 import { auth } from "../../middlewire/auth";
 import { USER_ROLE } from "../user/user.const";
-import validaterefreshToken from "../../middlewire/validateRefreshToken";
+// import validaterefreshToken from "../../middlewire/validateRefreshToken";
+import { authRefesh } from "../../middlewire/authRefresh";
 
 const router = Router();
 
@@ -36,7 +37,13 @@ router.post(
 );
 router.post(
   "/get-token",
-  validaterefreshToken(authValidation.refreshTokenValidationSchema),
+  authRefesh(
+    USER_ROLE.admin,
+    USER_ROLE.customer,
+    USER_ROLE.mealProvider,
+    USER_ROLE.superAdmin
+  ),
+  // validaterefreshToken(authValidation.refreshTokenValidationSchema),
   authController.generateAccessToken
 );
 router.post(

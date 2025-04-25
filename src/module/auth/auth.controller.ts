@@ -3,7 +3,7 @@
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../../utills/catchAsync";
 import { authService } from "./auth.saervice";
-import { cookieOptions } from "./auth.const";
+import { cookieOption2, cookieOptions } from "./auth.const";
 import { sendResponse } from "../../utills/sendResponse";
 import { StatusCodes } from "http-status-codes";
 
@@ -13,6 +13,7 @@ const login = catchAsync(
     const result = await authService.login(payload);
     const { accessToken, refreshToken } = result;
     res.cookie("refreshToken", refreshToken, cookieOptions);
+    res.cookie("accessToken", accessToken, cookieOption2);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
@@ -50,13 +51,14 @@ const changePassword = catchAsync(
 
 const generateAccessToken = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { refreshToken } = req.cookies;
-    const result = await authService.generateAccessToken(refreshToken);
+    const user = req.user;
+    const result = await authService.generateAccessToken(user);
+    res.cookie("accessToken", result, cookieOption2);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,
       message: "token generated successfullt",
-      data: result,
+      data: { accessToken: result },
     });
   }
 );

@@ -39,6 +39,7 @@ const getMyMealPlans = async (id: string, query: Record<string, unknown>) => {
     throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
   }
   filter.customer = isCustomerExist?._id;
+  filter.isDeleted = false;
   query = { ...query, ...filter };
   const getMyPlansQuery = new QueryBuilder(
     MealPlanner.find().populate("customer"),

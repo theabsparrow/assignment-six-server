@@ -19,9 +19,10 @@ const kitchenValidationSchema = z.object({
   email: z.string().email("Invalid email").trim().optional(),
   phoneNumber: z.string().min(1, "Phone number is required").trim(),
   kitchenPhotos: z
-    .array(z.string().url("Each kitchen photo must be a valid URL"))
-    .min(1, "At least 1 kitchen photo is required")
-    .max(5, "At most 5 kitchen photos are allowed"),
+    .string({
+      required_error: "photo is reqired",
+    })
+    .url("Each kitchen photo must be a valid URL"),
   hygieneCertified: z.boolean({
     required_error: "hygine certificate is required",
   }),
@@ -47,6 +48,11 @@ const updateKitchenValidationSchema = z.object({
   location: z.string().min(1, "Location is required").trim().optional(),
   email: z.string().email("Invalid email").trim().optional(),
   phoneNumber: z.string().min(1, "Phone number is required").trim().optional(),
+  kitchenPhotos: z
+    .string({
+      required_error: "photo is reqired",
+    })
+    .url("Each kitchen photo must be a valid URL"),
   hygieneCertified: z.boolean().optional(),
   licenseOrCertificate: z.string().optional(),
   foodHandlerExperience: z

@@ -19,7 +19,7 @@ export type TKitchen = {
   location: string;
   phoneNumber: string;
   email: string;
-  kitchenPhotos: string[];
+  kitchenPhotos: string;
   hygieneCertified: boolean;
   licenseOrCertificate?: string;
   foodHandlerExperience: string;

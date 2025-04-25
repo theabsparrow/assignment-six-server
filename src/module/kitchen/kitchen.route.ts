@@ -23,6 +23,11 @@ router.get(
   kitchenController.getAllKitchen
 );
 router.get(
+  "/myKitchen",
+  auth(USER_ROLE.mealProvider),
+  kitchenController.getMyKitchen
+);
+router.get(
   "/:id",
   auth(
     USER_ROLE.admin,
@@ -32,6 +37,7 @@ router.get(
   ),
   kitchenController.getASingleKitchen
 );
+
 router.patch(
   "/update-kitchen",
   auth(USER_ROLE.mealProvider),

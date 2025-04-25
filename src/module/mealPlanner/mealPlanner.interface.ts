@@ -21,7 +21,7 @@ export type TMealPlanner = {
   customer: Types.ObjectId;
   preferredMealTime: TMealTime[];
   preferredMealDay: TCookingDay[];
-  foodPreference: FoodPreferenceOption[];
+  foodPreference: FoodPreferenceOption;
   dietaryPreferences: TDietaryPreference[];
   notes: string;
   isActive: boolean;

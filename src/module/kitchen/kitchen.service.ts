@@ -126,6 +126,23 @@ const getASingleKitchen = async (id: string) => {
   return result;
 };
 
+const getMyKitchen = async (id: string) => {
+  const isMealProvider = await MealProvider.findOne({ user: id }).select(
+    "email"
+  );
+  if (!isMealProvider) {
+    throw new AppError(StatusCodes.NOT_FOUND, "kitchen not dound");
+  }
+  const isKitchenExist = await Kitchen.findOne({ owner: isMealProvider?._id });
+  if (!isKitchenExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, "kitchen not dound");
+  }
+  if (isKitchenExist?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "kitchen not dound");
+  }
+  return isKitchenExist;
+};
+
 const updateKitchen = async ({
   payload,
   user,
@@ -277,4 +294,5 @@ export const kitchenService = {
   getAllKitchen,
   getASingleKitchen,
   updateKitchen,
+  getMyKitchen,
 };

@@ -6,8 +6,6 @@ import {
   createToken,
   generateOTP,
   passwordMatching,
-  timeComparison,
-  verifyToken,
   verifyUser,
   verifyUserByEmail,
 } from "./auth.utills";
@@ -120,20 +118,13 @@ const changePassword = async (payload: TChangePassword, user: string) => {
   return { accessToken, refreshToken };
 };
 
-const generateAccessToken = async (refreshToken: string) => {
-  const secret = config.jwt_refresh_secret as string;
-  const decoded = verifyToken(refreshToken, secret);
-  const { userId, iat } = decoded as JwtPayload;
+const generateAccessToken = async (user: JwtPayload) => {
+  const { userId } = user;
+  const secret = config.jwt_access_secret as string;
+
   const isUserExist = await User.findById(userId);
-  if (isUserExist && isUserExist?.passwordChangedAt) {
-    const passwordChangedTime = isUserExist?.passwordChangedAt as Date;
-    const passwordChangedTimeComparison = timeComparison(
-      passwordChangedTime,
-      iat as number
-    );
-    if (passwordChangedTimeComparison) {
-      throw new AppError(StatusCodes.UNAUTHORIZED, "you are not authorized");
-    }
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, "user data not found");
   }
   const jwtPayload: TJwtPayload = {
     userId: isUserExist?._id.toString() as string,
@@ -141,7 +132,7 @@ const generateAccessToken = async (refreshToken: string) => {
   };
   const accessToken = createToken(
     jwtPayload,
-    config.jwt_access_secret as string,
+    secret,
     config.jwt_access_expires_in as string
   );
   return accessToken;

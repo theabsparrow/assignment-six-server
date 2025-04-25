@@ -1,26 +1,26 @@
 import { model, Schema } from "mongoose";
-import { TDeliveryAddress, TOrder } from "./order.interface";
+import { TOrder } from "./order.interface";
 import { orderStatus } from "./order.const";
 import { weekDays } from "../kitchen/kitchen.const";
 
-const deliveryAddressSchema = new Schema<TDeliveryAddress>({
-  area: {
-    type: String,
-    required: [true, "area is required"],
-  },
-  street: {
-    type: String,
-    required: [true, "street is required"],
-  },
-  houseNo: {
-    type: String,
-    required: [true, "house no is required"],
-  },
-  city: {
-    type: String,
-    default: "Dhaka",
-  },
-});
+// const deliveryAddressSchema = new Schema<TDeliveryAddress>({
+//   area: {
+//     type: String,
+//     required: [true, "area is required"],
+//   },
+//   street: {
+//     type: String,
+//     required: [true, "street is required"],
+//   },
+//   houseNo: {
+//     type: String,
+//     required: [true, "house no is required"],
+//   },
+//   city: {
+//     type: String,
+//     default: "Dhaka",
+//   },
+// });
 
 const OrderSchema = new Schema<TOrder>(
   {
@@ -95,7 +95,7 @@ const OrderSchema = new Schema<TOrder>(
       type: String,
     },
     deliveryAddress: {
-      type: deliveryAddressSchema,
+      type: String,
       required: [true, "delivery address is required"],
     },
     payment: {

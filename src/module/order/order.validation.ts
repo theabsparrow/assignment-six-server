@@ -2,11 +2,11 @@ import { z } from "zod";
 import { mealTime, weekDays } from "../kitchen/kitchen.const";
 import { orderStatus, orderType, paymentMethod } from "./order.const";
 
-const deliveryAddressSchema = z.object({
-  area: z.string().min(1, "Area is required"),
-  street: z.string().min(1, "Street is required"),
-  houseNo: z.string().min(1, "House No is required"),
-});
+// const deliveryAddressSchema = z.object({
+//   area: z.string().min(1, "Area is required"),
+//   street: z.string().min(1, "Street is required"),
+//   houseNo: z.string().min(1, "House No is required"),
+// });
 
 const orderValidationSchema = z.object({
   mealPlanner: z.string().optional(),
@@ -21,7 +21,7 @@ const orderValidationSchema = z.object({
   orderType: z.enum([...orderType] as [string, ...string[]]),
   startDate: z.string().min(1, "Start date is required"),
   note: z.string().optional(),
-  deliveryAddress: deliveryAddressSchema,
+  deliveryAddress: z.string(),
   payment: z.enum([...paymentMethod] as [string, ...string[]]),
 });
 

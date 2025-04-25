@@ -4,12 +4,12 @@ import { TCookingDay, TMealTime } from "../kitchen/kitchen.interface";
 export type TOrderType = "once" | "regular";
 export type TDeliveryMode = "mealPlanner" | "manual";
 export type TOrderStatus = "Pending" | "Confirmed" | "Delivered" | "Cancelled";
-export type TDeliveryAddress = {
-  area: string;
-  street: string;
-  houseNo: string;
-  city: "Dhaka";
-};
+// export type TDeliveryAddress = {
+//   area: string;
+//   street: string;
+//   houseNo: string;
+//   city: "Dhaka";
+// };
 
 export type TOrder = {
   customerId: Types.ObjectId;
@@ -28,7 +28,7 @@ export type TOrder = {
   deliveredCount?: number;
   startDate: string;
   note?: string;
-  deliveryAddress: TDeliveryAddress;
+  deliveryAddress: string;
   payment: "online" | "cash on delivery";
   isDeleted: boolean;
 };

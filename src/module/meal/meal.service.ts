@@ -33,6 +33,10 @@ const createMeal = async (user: JwtPayload, payload: TMeal) => {
 };
 
 const getAllMeals = async (query: Record<string, unknown>) => {
+  const filter: Record<string, unknown> = {};
+  filter.isDeleted = false;
+  query = { ...query, ...filter };
+
   const getAllMealsQuery = new QueryBuilder(
     Meal.find().populate("kitchen owner"),
     query
@@ -44,6 +48,34 @@ const getAllMeals = async (query: Record<string, unknown>) => {
     .fields();
   const result = await getAllMealsQuery.modelQuery;
   const meta = await getAllMealsQuery.countTotal();
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  return { meta, result };
+};
+
+const getMyMeals = async (query: Record<string, unknown>, id: string) => {
+  const isMealProviderExists = await MealProvider.findOne({ user: id }).select(
+    "email"
+  );
+  if (!isMealProviderExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  const filter: Record<string, unknown> = {};
+  filter.isDeleted = false;
+  filter.owner = isMealProviderExists?._id;
+  query = { ...query, ...filter };
+  const getMyMealsQuery = new QueryBuilder(
+    Meal.find().populate("kitchen owner"),
+    query
+  )
+    .search(["title"])
+    .filter()
+    .sort()
+    .paginateQuery()
+    .fields();
+  const result = await getMyMealsQuery.modelQuery;
+  const meta = await getMyMealsQuery.countTotal();
   if (!result) {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
@@ -247,4 +279,5 @@ export const mealService = {
   getAllMeals,
   getASingleMeal,
   updateMeal,
+  getMyMeals,
 };

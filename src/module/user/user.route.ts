@@ -7,6 +7,7 @@ import { auth } from "../../middlewire/auth";
 import { USER_ROLE } from "./user.const";
 import { userValidation } from "./user.validation";
 import validateCookies from "../../middlewire/validateCookies";
+import { authRefesh } from "../../middlewire/authRefresh";
 
 const router = Router();
 
@@ -22,7 +23,7 @@ router.post(
 );
 router.get(
   "/my-profile",
-  auth(
+  authRefesh(
     USER_ROLE.admin,
     USER_ROLE.customer,
     USER_ROLE.mealProvider,

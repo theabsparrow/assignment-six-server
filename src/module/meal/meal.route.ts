@@ -14,6 +14,11 @@ router.post(
   mealController.createMeal
 );
 router.get("/get-allMeals", mealController.getAllMeals);
+router.get(
+  "/get-myMeals",
+  auth(USER_ROLE.mealProvider),
+  mealController.getMyMeals
+);
 router.get("/get-meal/:id", mealController.getASingleMeal);
 router.patch(
   "/update-meal/:id",

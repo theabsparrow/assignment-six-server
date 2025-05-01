@@ -18,7 +18,7 @@ export const verifyRefreshToken = (...requiredRoles: TUSerRole[]) => {
     }
     let decoded;
     try {
-      decoded = verifyToken(refreshToken, config.jwt_access_secret as string);
+      decoded = verifyToken(refreshToken, config.jwt_refresh_secret as string);
     } catch (err: any) {
       throw new AppError(
         StatusCodes.UNAUTHORIZED,

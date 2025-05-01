@@ -17,7 +17,10 @@ export const verifyOtpToken = (...requiredRoles: TUSerRole[]) => {
     }
     let decoded;
     try {
-      decoded = verifyToken(refreshToken1, config.jwt_access_secret as string);
+      decoded = verifyToken(
+        refreshToken1,
+        config.jwt_refresh1_secret as string
+      );
     } catch (err: any) {
       throw new AppError(
         StatusCodes.UNAUTHORIZED,

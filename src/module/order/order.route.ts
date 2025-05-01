@@ -12,6 +12,12 @@ router.post(
   validateRequest(orderValidation.orderValidationSchema),
   orderController.createOrder
 );
+router.get("/myOrders", auth(USER_ROLE.customer), orderController.getMyOrder);
+router.get(
+  "/mealProvider-orders",
+  auth(USER_ROLE.mealProvider),
+  orderController.getMealProvidersOrder
+);
 router.patch(
   "/change-status/:id",
   auth(

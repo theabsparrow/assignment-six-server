@@ -11,7 +11,6 @@ import { User } from "../module/user/user.model";
 
 export const authRefesh = (...requiredRoles: TUSerRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    // const { refreshToken } = req.cookies;
     const token = req.headers.authorization;
     if (!token) {
       throw new AppError(StatusCodes.UNAUTHORIZED, "you are not authorized");

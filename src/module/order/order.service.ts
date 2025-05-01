@@ -15,6 +15,7 @@ import { orderEmailTemplate } from "../../utills/orderEmailTemplate";
 import { sendEmail } from "../../utills/sendEmail";
 import { TemailOrder, TemailOrderStatus } from "../../interface/global";
 import { changeStatusEmailTemplate } from "../../utills/changeStatusEmail";
+import QueryBuilder from "../../builder/QueryBuilder";
 
 const createOrder = async ({
   id,
@@ -101,6 +102,61 @@ const createOrder = async ({
     });
     return orderInfo;
   }
+};
+
+const getMyOrder = async (id: string, query: Record<string, unknown>) => {
+  const isCustomerExists = await Customer.findOne({ user: id }).select("email");
+  if (!isCustomerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to retrive data");
+  }
+  const filter: Record<string, unknown> = {};
+  filter.isDeleted = false;
+  filter.customerId = isCustomerExists?._id;
+  query = { ...query, ...filter };
+  const orderQuery = new QueryBuilder(Order.find(), query)
+    .filter()
+    .sort()
+    .paginateQuery()
+    .fields();
+  const result = await orderQuery.modelQuery;
+  const meta = await orderQuery.countTotal();
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  return { meta, result };
+};
+
+const getMealProviderOrder = async (
+  id: string,
+  query: Record<string, unknown>
+) => {
+  const isMealProviderExists = await MealProvider.findOne({ user: id }).select(
+    "email"
+  );
+  if (!isMealProviderExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to retrive data");
+  }
+  const isKitchenExists = await Kitchen.findOne({
+    owner: isMealProviderExists?._id,
+  }).select("email");
+  if (!isKitchenExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to retrive data");
+  }
+  const filter: Record<string, unknown> = {};
+  filter.isDeleted = false;
+  filter.kitchenId = isKitchenExists?._id;
+  query = { ...query, ...filter };
+  const orderQuery = new QueryBuilder(Order.find(), query)
+    .filter()
+    .sort()
+    .paginateQuery()
+    .fields();
+  const result = await orderQuery.modelQuery;
+  const meta = await orderQuery.countTotal();
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  return { meta, result };
 };
 
 const changeOrderStatus = async ({
@@ -362,4 +418,6 @@ export const orderService = {
   createOrder,
   changeOrderStatus,
   updateDeliveryCount,
+  getMyOrder,
+  getMealProviderOrder,
 };

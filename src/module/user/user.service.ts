@@ -11,7 +11,6 @@ import {
   createToken,
   generateOTP,
   passwordMatching,
-  verifyToken,
   verifyUser,
 } from "../auth/auth.utills";
 import config from "../../config";
@@ -466,11 +465,9 @@ const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
   }
 };
 
-const verifyEmail = async (payload: { otp: string }, otpToken: string) => {
+const verifyEmail = async (payload: { otp: string }, user: JwtPayload) => {
   const { otp } = payload;
-  const secret = config.jwt_refresh1_secret as string;
-  const decoded = verifyToken(otpToken, secret);
-  const { userId } = decoded as JwtPayload;
+  const { userId } = user;
   const hashedOtp = userId.split(" ")[1];
   const id = userId.split(" ")[0];
   const isOtpMatched = await passwordMatching(otp, hashedOtp);

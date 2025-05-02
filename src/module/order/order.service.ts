@@ -16,6 +16,7 @@ import { sendEmail } from "../../utills/sendEmail";
 import { TemailOrder, TemailOrderStatus } from "../../interface/global";
 import { changeStatusEmailTemplate } from "../../utills/changeStatusEmail";
 import QueryBuilder from "../../builder/QueryBuilder";
+import { User } from "../user/user.model";
 
 const createOrder = async ({
   id,
@@ -32,14 +33,12 @@ const createOrder = async ({
   if (!isMealExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "this meal data not found");
   }
-
   if (!isMealExist?.isAvailable) {
     throw new AppError(
       StatusCodes.NOT_FOUND,
       "this meal is not available right now"
     );
   }
-
   const isKitchen = await Kitchen.findById(isMealExist?.kitchen).select(
     "isDeleted isActive email kitchenName"
   );
@@ -62,8 +61,14 @@ const createOrder = async ({
       "the kitchen of the meal is not active right now"
     );
   }
+
+  const isUserExists = await User.findById(userId);
+  if (!isUserExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
+  }
+
   const isCustomerExist = await Customer.findOne({ user: userId }).select(
-    "email name"
+    "name"
   );
   if (!isCustomerExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
@@ -86,7 +91,7 @@ const createOrder = async ({
   if (result && orderInfo) {
     const info: TemailOrder = {
       customerName: isCustomerExist?.name,
-      customerEmail: isCustomerExist?.email,
+      customerEmail: isUserExists?.email,
       orderDate: orderInfo?.startDate,
       kitchenName: isKitchen?.kitchenName,
       mealName: isMealExist?.title,
@@ -105,7 +110,7 @@ const createOrder = async ({
 };
 
 const getMyOrder = async (id: string, query: Record<string, unknown>) => {
-  const isCustomerExists = await Customer.findOne({ user: id }).select("email");
+  const isCustomerExists = await Customer.findOne({ user: id }).select("user");
   if (!isCustomerExists) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to retrive data");
   }
@@ -131,7 +136,7 @@ const getMealProviderOrder = async (
   query: Record<string, unknown>
 ) => {
   const isMealProviderExists = await MealProvider.findOne({ user: id }).select(
-    "email"
+    "user"
   );
   if (!isMealProviderExists) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to retrive data");
@@ -171,6 +176,10 @@ const changeOrderStatus = async ({
   const { userRole, userId } = user;
   const info: Partial<TemailOrderStatus> = {};
 
+  const isUserExists = await User.findById(userId).select("email");
+  if (!isUserExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "user data not found");
+  }
   const isOrderExists = await Order.findById(id);
   if (!isOrderExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "order data not found");
@@ -216,7 +225,7 @@ const changeOrderStatus = async ({
 
   if (userRole === USER_ROLE.customer) {
     const isCustomerExist = await Customer.findOne({ user: userId }).select(
-      "email name"
+      "name"
     );
     if (!isCustomerExist) {
       throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
@@ -230,13 +239,13 @@ const changeOrderStatus = async ({
       );
     }
     info.customerName = isCustomerExist?.name;
-    info.customerEmail = isCustomerExist?.email;
+    info.customerEmail = isUserExists?.email;
   }
 
   if (userRole === USER_ROLE.mealProvider) {
     const isMealProviderExist = await MealProvider.findOne({
       user: userId,
-    }).select("email");
+    }).select("user");
     if (!isMealProviderExist) {
       throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
     }
@@ -350,7 +359,7 @@ const updateDeliveryCount = async (id: string, user: JwtPayload) => {
   if (userRole === USER_ROLE.mealProvider) {
     const isMealProviderExist = await MealProvider.findOne({
       user: userId,
-    }).select("email");
+    }).select("user");
     if (!isMealProviderExist) {
       throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
     }

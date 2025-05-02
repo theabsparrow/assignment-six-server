@@ -9,10 +9,15 @@ import QueryBuilder from "../../builder/QueryBuilder";
 import { JwtPayload } from "jsonwebtoken";
 import { USER_ROLE } from "../user/user.const";
 import mongoose from "mongoose";
+import { User } from "../user/user.model";
 
 const createKitchen = async (id: string, payload: TKitchen) => {
+  const isUSerExists = await User.findById(id);
+  if (!isUSerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+  }
   const isMealProvider = await MealProvider.findOne({ user: id }).select(
-    "email"
+    "user"
   );
   if (!isMealProvider) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
@@ -24,7 +29,7 @@ const createKitchen = async (id: string, payload: TKitchen) => {
       "you have already a kitchen, so you can`t create another"
     );
   }
-  const kitchenEmail = payload?.email || isMealProvider?.email;
+  const kitchenEmail = payload?.email || isUSerExists?.email;
   const isEmailExist = await Kitchen.findOne({ email: kitchenEmail }).select(
     "email"
   );
@@ -128,7 +133,7 @@ const getASingleKitchen = async (id: string) => {
 
 const getMyKitchen = async (id: string) => {
   const isMealProvider = await MealProvider.findOne({ user: id }).select(
-    "email"
+    "user"
   );
   if (!isMealProvider) {
     throw new AppError(StatusCodes.NOT_FOUND, "kitchen not dound");
@@ -152,7 +157,7 @@ const updateKitchen = async ({
 }) => {
   const { userId } = user;
   const isMealProvider = await MealProvider.findOne({ user: userId }).select(
-    "email"
+    "user"
   );
   if (!isMealProvider) {
     throw new AppError(StatusCodes.NOT_FOUND, "data not dound");

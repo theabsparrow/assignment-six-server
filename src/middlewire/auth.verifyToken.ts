@@ -42,6 +42,7 @@ export const verifyOtpToken = (...requiredRoles: TUSerRole[]) => {
     if (requiredRoles && !requiredRoles.includes(userRole)) {
       throw new AppError(StatusCodes.UNAUTHORIZED, "you are not authortized");
     }
+    req.user = decoded as JwtPayload;
     next();
   });
 };

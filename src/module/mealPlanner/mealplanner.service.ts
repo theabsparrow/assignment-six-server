@@ -10,7 +10,7 @@ import { JwtPayload } from "jsonwebtoken";
 import mongoose from "mongoose";
 
 const createMealPlan = async (payload: TMealPlanner, userId: string) => {
-  const customerId = await Customer.findOne({ user: userId }).select("email");
+  const customerId = await Customer.findOne({ user: userId }).select("user");
   if (!customerId) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create planner");
   }
@@ -34,7 +34,7 @@ const createMealPlan = async (payload: TMealPlanner, userId: string) => {
 
 const getMyMealPlans = async (id: string, query: Record<string, unknown>) => {
   const filter: Record<string, unknown> = {};
-  const isCustomerExist = await Customer.findOne({ user: id }).select("email");
+  const isCustomerExist = await Customer.findOne({ user: id }).select("user");
   if (!isCustomerExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
   }
@@ -91,7 +91,7 @@ const updateMealPlan = async ({
   if (!mealPlannerExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
   }
-  const isCustomer = await Customer.findOne({ user: userId }).select("email");
+  const isCustomer = await Customer.findOne({ user: userId }).select("user");
   if (!isCustomer) {
     throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
   }

@@ -121,8 +121,8 @@ const updatePhoneEmail = catchAsync(
 const verifyEmail = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const payload = req.body;
-    const { refreshToken1 } = req.cookies;
-    const result = await userService.verifyEmail(payload, refreshToken1);
+    const user = req.user;
+    const result = await userService.verifyEmail(payload, user);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

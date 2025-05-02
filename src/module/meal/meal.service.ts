@@ -56,7 +56,7 @@ const getAllMeals = async (query: Record<string, unknown>) => {
 
 const getMyMeals = async (query: Record<string, unknown>, id: string) => {
   const isMealProviderExists = await MealProvider.findOne({ user: id }).select(
-    "email"
+    "user"
   );
   if (!isMealProviderExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");

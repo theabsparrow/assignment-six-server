@@ -145,19 +145,18 @@ const forgetPassword = async (email: string) => {
     newotp,
     Number(config.bcrypt_salt_round as string)
   );
+
   const jwtPayload: TJwtPayload = {
-    userId: result?._id.toString() as string,
+    userId: `${result?._id.toString() as string} ${hashedOTP}`,
     userRole: result?.role as TUSerRole,
-    otp: hashedOTP,
   };
-  const resetAccessToken = createToken(
+  const resetToken = createToken(
     jwtPayload,
-    config.jwt_access_secret as string,
-    "5m"
+    config.jwt_refresh1_secret as string,
+    "2m"
   );
   const userEmail = result?.email;
-  if (resetAccessToken && newotp) {
-    const resetToken = resetAccessToken;
+  if (resetToken && newotp) {
     const html = otpEmailTemplate(newotp);
     await sendEmail({
       to: userEmail,

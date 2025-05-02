@@ -47,7 +47,7 @@ const getMeRoute = catchAsync(
       success: true,
       statusCode: StatusCodes.OK,
       message: "info is retirved successfully",
-      data: null,
+      data: result,
     });
   }
 );

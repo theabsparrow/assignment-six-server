@@ -6,8 +6,8 @@ import { mealProviderValidation } from "../mealProvider/mealProvider.validation"
 import { auth } from "../../middlewire/auth";
 import { USER_ROLE } from "./user.const";
 import { userValidation } from "./user.validation";
-import validateCookies from "../../middlewire/validateCookies";
 import { authRefesh } from "../../middlewire/authRefresh";
+import { verifyOtpToken } from "../../middlewire/auth.verifyToken";
 
 const router = Router();
 
@@ -65,14 +65,13 @@ router.patch(
 );
 router.patch(
   "/verify-email",
-  auth(
+  verifyOtpToken(
     USER_ROLE.admin,
     USER_ROLE.customer,
     USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
   validateRequest(userValidation.verifyEmailValidationSchema),
-  validateCookies(userValidation.refreshToken1ValidationSchema),
   userController.verifyEmail
 );
 export const userRoute = router;

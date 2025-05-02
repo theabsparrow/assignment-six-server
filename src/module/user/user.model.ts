@@ -38,6 +38,10 @@ const UserSchema = new Schema<TUSer>(
     passwordChangedAt: {
       type: Date,
     },
+    verifiedWithEmail: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

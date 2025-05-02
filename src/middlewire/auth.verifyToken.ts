@@ -11,16 +11,13 @@ import { User } from "../module/user/user.model";
 
 export const verifyOtpToken = (...requiredRoles: TUSerRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { refreshToken1 } = req.cookies;
-    if (!refreshToken1) {
+    const token = req.headers.authorization;
+    if (!token) {
       throw new AppError(StatusCodes.UNAUTHORIZED, "you are not authorized");
     }
     let decoded;
     try {
-      decoded = verifyToken(
-        refreshToken1,
-        config.jwt_refresh1_secret as string
-      );
+      decoded = verifyToken(token, config.jwt_refresh1_secret as string);
     } catch (err: any) {
       throw new AppError(
         StatusCodes.UNAUTHORIZED,

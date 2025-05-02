@@ -14,6 +14,4 @@ export type TChangePassword = {
 export type TJwtPayload = {
   userId: string;
   userRole: TUSerRole;
-  otp?: string;
-  email?: string;
 };

@@ -10,5 +10,6 @@ export type TUSer = {
   role: TUSerRole;
   status: TStatus;
   passwordChangedAt: Date;
+  verifiedWithEmail: boolean;
   isDeleted: boolean;
 };

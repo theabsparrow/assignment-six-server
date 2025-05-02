@@ -18,7 +18,6 @@ export type TAlergies =
 export type TCustomer = {
   user: Types.ObjectId;
   name: string;
-  email: string;
   profileImage?: string;
   address: string;
   allergies?: TAlergies[];

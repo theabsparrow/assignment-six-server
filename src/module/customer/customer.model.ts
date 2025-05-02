@@ -15,11 +15,6 @@ const CustomerSchema = new Schema<TCustomer>(
       required: [true, "name is required"],
       trim: true,
     },
-    email: {
-      type: String,
-      required: [true, "email is required"],
-      trim: true,
-    },
     profileImage: String,
     address: {
       type: String,

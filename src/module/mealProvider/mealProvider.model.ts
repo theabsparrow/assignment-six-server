@@ -14,11 +14,6 @@ const MealProviderSchema = new Schema<TMealProvider>(
       required: [true, "Name is required"],
       trim: true,
     },
-    email: {
-      type: String,
-      required: [true, "email is required"],
-      trim: true,
-    },
     gender: {
       type: String,
       enum: gender,

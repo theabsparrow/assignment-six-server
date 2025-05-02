@@ -76,7 +76,6 @@ const createCustomer = async (userData: TUSer, customer: TCustomer) => {
       config.jwt_refresh_expires_in as string
     );
     customer.user = user?._id;
-    customer.email = user?.email;
     customer.name = capitalizeFirstWord(customer?.name);
     const customerInfo = await Customer.create([customer], { session });
     if (!customerInfo.length) {
@@ -104,7 +103,6 @@ const createMealProvider = async (
   if (isEmailExists) {
     throw new AppError(StatusCodes.CONFLICT, "this email is already in used");
   }
-
   const isPhoneExists = await User.findOne({
     phoneNumber: userData?.phone,
     isDeleted: false,
@@ -166,7 +164,6 @@ const createMealProvider = async (
       config.jwt_refresh_expires_in as string
     );
     mealProvider.user = user?._id;
-    mealProvider.email = user?.email;
     mealProvider.name = capitalizeFirstWord(mealProvider?.name);
     const mealProviderInfo = await MealProvider.create([mealProvider], {
       session,
@@ -266,16 +263,14 @@ const dleteMyAccount = async (id: string) => {
       );
     }
     const role = deleteFromUser?.role;
-    const email = deleteFromUser?.email;
     let deleteAccount;
     if (role === USER_ROLE.mealProvider) {
       deleteAccount = await MealProvider.findOneAndUpdate(
-        { email: email },
+        { user: id },
         { isDeleted: true },
         { session, new: true, runValidators: true }
       );
     }
-
     if (role === USER_ROLE.mealProvider && deleteAccount) {
       const result = await Kitchen.findOneAndUpdate(
         { owner: deleteAccount?._id },
@@ -289,10 +284,9 @@ const dleteMyAccount = async (id: string) => {
         );
       }
     }
-
     if (role === USER_ROLE.customer) {
       deleteAccount = await Customer.findOneAndUpdate(
-        { email: email },
+        { user: id },
         { isDeleted: true },
         { session, new: true, runValidators: true }
       );
@@ -340,17 +334,14 @@ const deleteAccount = async (id: string, role: string) => {
       );
     }
     const role = deleteFromUser?.role;
-    const email = deleteFromUser?.email;
-
     let deleteAccount;
     if (role === USER_ROLE.mealProvider) {
       deleteAccount = await MealProvider.findOneAndUpdate(
-        { email: email },
+        { user: id },
         { isDeleted: true },
         { session, new: true, runValidators: true }
       );
     }
-
     if (role === USER_ROLE.mealProvider && deleteAccount) {
       const result = await Kitchen.findOneAndUpdate(
         { owner: deleteAccount?._id },
@@ -364,10 +355,9 @@ const deleteAccount = async (id: string, role: string) => {
         );
       }
     }
-
     if (role === USER_ROLE.customer) {
       deleteAccount = await Customer.findOneAndUpdate(
-        { email: email },
+        { user: id },
         { isDeleted: true },
         { session, new: true, runValidators: true }
       );
@@ -390,68 +380,97 @@ const deleteAccount = async (id: string, role: string) => {
 
 const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
   const { email, phone } = payload;
-  let updatedNumber = null;
-  if (phone) {
-    const isPhoneExists = await User.findOne({ phone: phone }).select("phone");
-    if (isPhoneExists) {
-      throw new AppError(
-        StatusCodes.CONFLICT,
-        "this phone number is already exists"
-      );
-    }
-    updatedNumber = await User.findByIdAndUpdate(
-      id,
-      { phone: phone },
-      { new: true }
-    );
-    if (!updatedNumber) {
-      throw new AppError(
-        StatusCodes.BAD_REQUEST,
-        "faild to update phone number"
-      );
-    }
-  }
-  let otpToken = null;
-  if (email) {
-    const isEmailExist = await User.findOne({ email: email }).select("email");
-    if (isEmailExist) {
-      throw new AppError(StatusCodes.CONFLICT, "this email is already exists");
-    }
-    const isUSer = await User.findById(id);
-    const newotp = generateOTP().toString();
-    const hashedOTP = await bcrypt.hash(
-      newotp,
-      Number(config.bcrypt_salt_round as string)
-    );
-    const jwtPayload: TJwtPayload = {
-      userId: `${isUSer?._id.toString() as string} ${hashedOTP}`,
-      userRole: isUSer?.role as TUSerRole,
-      email: email,
-    };
-    otpToken = createToken(
-      jwtPayload,
-      config.jwt_refresh1_secret as string,
-      config.jwt_refresh1_expires_in as string
-    );
 
-    if (otpToken && hashedOTP) {
-      const html = otpEmailTemplate(newotp);
-      await sendEmail({
-        to: email,
-        html,
-        subject: "Your one time password(OTP)",
-        text: "This one time password is valid for only 2 minutes",
-      });
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    let updatedNumber = null;
+    if (phone) {
+      const isPhoneExists = await User.findOne({ phone: phone }).select(
+        "phone"
+      );
+      if (isPhoneExists) {
+        throw new AppError(
+          StatusCodes.CONFLICT,
+          "this phone number is already exists"
+        );
+      }
+      updatedNumber = await User.findByIdAndUpdate(
+        id,
+        { phone: phone },
+        { session, new: true, runValidators: true }
+      );
+      if (!updatedNumber) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          "faild to update phone number"
+        );
+      }
     }
+
+    let updatedEmail = null;
+    let otpToken = null;
+    if (email) {
+      const isEmailExist = await User.findOne({ email: email }).select("email");
+      if (isEmailExist) {
+        throw new AppError(
+          StatusCodes.CONFLICT,
+          "this email is already exists"
+        );
+      }
+      updatedEmail = await User.findByIdAndUpdate(
+        id,
+        { email: email, verifiedWithEmail: false },
+        { session, new: true, runValidators: true }
+      );
+
+      if (!updatedEmail) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          "faild to update Email address"
+        );
+      }
+      const isUSer = await User.findById(id);
+      const newotp = generateOTP().toString();
+      const hashedOTP = await bcrypt.hash(
+        newotp,
+        Number(config.bcrypt_salt_round as string)
+      );
+      const jwtPayload: TJwtPayload = {
+        userId: `${isUSer?._id.toString() as string} ${hashedOTP}`,
+        userRole: isUSer?.role as TUSerRole,
+      };
+      otpToken = createToken(
+        jwtPayload,
+        config.jwt_refresh1_secret as string,
+        config.jwt_refresh1_expires_in as string
+      );
+
+      if (otpToken && hashedOTP) {
+        const html = otpEmailTemplate(newotp);
+        await sendEmail({
+          to: email,
+          html,
+          subject: "Your one time password(OTP)",
+          text: "This one time password is valid for only 2 minutes",
+        });
+      }
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    return { updatedNumber, otpToken };
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(StatusCodes.BAD_REQUEST, err);
   }
-  return { updatedNumber, otpToken };
 };
 
 const verifyEmail = async (payload: { otp: string }, otpToken: string) => {
   const { otp } = payload;
   const secret = config.jwt_refresh1_secret as string;
   const decoded = verifyToken(otpToken, secret);
-  const { userId, email, userRole } = decoded as JwtPayload;
+  const { userId } = decoded as JwtPayload;
   const hashedOtp = userId.split(" ")[1];
   const id = userId.split(" ")[0];
   const isOtpMatched = await passwordMatching(otp, hashedOtp);
@@ -461,47 +480,15 @@ const verifyEmail = async (payload: { otp: string }, otpToken: string) => {
       "the otp you have provided is wrong"
     );
   }
-  const session = await mongoose.startSession();
-  try {
-    session.startTransaction();
-    const updateEmailFromUser = await User.findByIdAndUpdate(
-      id,
-      { email: email },
-      { session, new: true, runValidators: true }
-    );
-
-    if (!updateEmailFromUser) {
-      throw new AppError(StatusCodes.BAD_REQUEST, "faild to update email");
-    }
-
-    if (userRole === USER_ROLE.mealProvider) {
-      const updateMealProviderEmail = await MealProvider.findOneAndUpdate(
-        { user: id },
-        { email: email },
-        { session, new: true, runValidators: true }
-      );
-      if (!updateMealProviderEmail) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update email");
-      }
-    }
-    if (userRole === USER_ROLE.customer || userRole === USER_ROLE.admin) {
-      const updateCustomerEmail = await Customer.findOneAndUpdate(
-        { user: id },
-        { email: email },
-        { session, new: true, runValidators: true }
-      );
-      if (!updateCustomerEmail) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update email");
-      }
-    }
-    await session.commitTransaction();
-    await session.endSession();
-    return updateEmailFromUser;
-  } catch (err: any) {
-    await session.abortTransaction();
-    await session.endSession();
-    throw new AppError(StatusCodes.BAD_REQUEST, err);
+  const verifyEmail = await User.findByIdAndUpdate(
+    id,
+    { verifiedWithEmail: true },
+    { new: true }
+  );
+  if (!verifyEmail) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to update email");
   }
+  return verifyEmail;
 };
 
 export const userService = {

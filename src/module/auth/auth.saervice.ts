@@ -93,29 +93,31 @@ const changePassword = async (payload: TChangePassword, user: string) => {
     throw new AppError(StatusCodes.UNAUTHORIZED, "password doesn`t match");
   }
   const hashedPassword = await bcrypt.hash(newPassword, Number(saltNumber));
-  await User.findByIdAndUpdate(
+  const result = await User.findByIdAndUpdate(
     user,
     { password: hashedPassword, passwordChangedAt: new Date() },
     { new: true }
   );
+  if (result?.passwordChangedAt) {
+    const jwtPayload: TJwtPayload = {
+      userId: isUserExist?._id.toString() as string,
+      userRole: isUserExist?.role as TUSerRole,
+    };
+    const accessToken = createToken(
+      jwtPayload,
+      config.jwt_access_secret as string,
+      config.jwt_access_expires_in as string
+    );
 
-  const jwtPayload: TJwtPayload = {
-    userId: isUserExist?._id.toString() as string,
-    userRole: isUserExist?.role as TUSerRole,
-  };
-
-  const accessToken = createToken(
-    jwtPayload,
-    config.jwt_access_secret as string,
-    config.jwt_access_expires_in as string
-  );
-
-  const refreshToken = createToken(
-    jwtPayload,
-    config.jwt_refresh_secret as string,
-    config.jwt_refresh_expires_in as string
-  );
-  return { accessToken, refreshToken };
+    const refreshToken = createToken(
+      jwtPayload,
+      config.jwt_refresh_secret as string,
+      config.jwt_refresh_expires_in as string
+    );
+    return { accessToken, refreshToken };
+  } else {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to change password");
+  }
 };
 
 const generateAccessToken = async (user: JwtPayload) => {
@@ -221,6 +223,38 @@ const setNewPassword = async (user: JwtPayload, newPassword: string) => {
   return { accessToken, refreshToken };
 };
 
+const resendOtp = async (id: string) => {
+  const user = await User.findById(id).select("role");
+  if (!user) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to resend the otp");
+  }
+  const newotp = generateOTP().toString();
+  const hashedOTP = await bcrypt.hash(
+    newotp,
+    Number(config.bcrypt_salt_round as string)
+  );
+  const jwtPayload: TJwtPayload = {
+    userId: `${user?._id.toString() as string} ${hashedOTP}`,
+    userRole: user?.role as TUSerRole,
+  };
+  const refresh1Token = createToken(
+    jwtPayload,
+    config.jwt_refresh1_secret as string,
+    config.jwt_refresh1_expires_in as string
+  );
+  if (!refresh1Token || !hashedOTP) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "user regestration faild");
+  }
+  const html = otpEmailTemplate(newotp);
+  await sendEmail({
+    to: user?.email,
+    html,
+    subject: "Your one time password(OTP)",
+    text: "This one time password is valid for only 2 minutes",
+  });
+  return refresh1Token;
+};
+
 export const authService = {
   login,
   changePassword,
@@ -228,4 +262,5 @@ export const authService = {
   forgetPassword,
   resetPassword,
   setNewPassword,
+  resendOtp,
 };

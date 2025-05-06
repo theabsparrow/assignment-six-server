@@ -32,7 +32,6 @@ const createCustomer = async (userData: TUSer, customer: TCustomer) => {
   if (isEmailExists) {
     throw new AppError(StatusCodes.CONFLICT, "this email is already in used");
   }
-
   const isPhoneExists = await User.findOne({
     phoneNumber: userData?.phone,
     isDeleted: false,
@@ -59,6 +58,12 @@ const createCustomer = async (userData: TUSer, customer: TCustomer) => {
       throw new AppError(StatusCodes.BAD_REQUEST, "user regestration faild");
     }
     const user = userInfo[0];
+    customer.user = user?._id;
+    customer.name = capitalizeFirstWord(customer?.name);
+    const customerInfo = await Customer.create([customer], { session });
+    if (!customerInfo.length) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "user regestration faild");
+    }
     const jwtPayload = {
       userId: user?._id.toString(),
       userRole: user?.role,
@@ -68,22 +73,40 @@ const createCustomer = async (userData: TUSer, customer: TCustomer) => {
       config.jwt_access_secret as string,
       config.jwt_access_expires_in as string
     );
-
     const refreshToken = createToken(
       jwtPayload,
       config.jwt_refresh_secret as string,
       config.jwt_refresh_expires_in as string
     );
-    customer.user = user?._id;
-    customer.name = capitalizeFirstWord(customer?.name);
-    const customerInfo = await Customer.create([customer], { session });
-    if (!customerInfo.length) {
+
+    const newotp = generateOTP().toString();
+    const hashedOTP = await bcrypt.hash(
+      newotp,
+      Number(config.bcrypt_salt_round as string)
+    );
+    const jwtPayload1: TJwtPayload = {
+      userId: `${user?._id.toString() as string} ${hashedOTP}`,
+      userRole: user?.role as TUSerRole,
+    };
+    const refresh1Token = createToken(
+      jwtPayload1,
+      config.jwt_refresh1_secret as string,
+      config.jwt_refresh1_expires_in as string
+    );
+    if (!refresh1Token || !hashedOTP) {
       throw new AppError(StatusCodes.BAD_REQUEST, "user regestration faild");
     }
+    const html = otpEmailTemplate(newotp);
+    await sendEmail({
+      to: user?.email,
+      html,
+      subject: "Your one time password(OTP)",
+      text: "This one time password is valid for only 2 minutes",
+    });
     await session.commitTransaction();
     await session.endSession();
     const customerData = customerInfo[0];
-    return { accessToken, refreshToken, customerData };
+    return { accessToken, refreshToken, refresh1Token, customerData };
   } catch (err: any) {
     await session.abortTransaction();
     await session.endSession();
@@ -130,7 +153,6 @@ const createMealProvider = async (
       );
     }
   }
-
   const age = calculateAge(mealProvider?.dateOfBirth);
   if (age < 18) {
     throw new AppError(
@@ -147,6 +169,14 @@ const createMealProvider = async (
       throw new AppError(StatusCodes.BAD_REQUEST, "user regestration faild");
     }
     const user = userInfo[0];
+    mealProvider.user = user?._id;
+    mealProvider.name = capitalizeFirstWord(mealProvider?.name);
+    const mealProviderInfo = await MealProvider.create([mealProvider], {
+      session,
+    });
+    if (!mealProviderInfo.length) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "user regestration faild");
+    }
     const jwtPayload = {
       userId: user?._id.toString(),
       userRole: user?.role,
@@ -156,24 +186,39 @@ const createMealProvider = async (
       config.jwt_access_secret as string,
       config.jwt_access_expires_in as string
     );
-
     const refreshToken = createToken(
       jwtPayload,
       config.jwt_refresh_secret as string,
       config.jwt_refresh_expires_in as string
     );
-    mealProvider.user = user?._id;
-    mealProvider.name = capitalizeFirstWord(mealProvider?.name);
-    const mealProviderInfo = await MealProvider.create([mealProvider], {
-      session,
-    });
-    if (!mealProviderInfo.length) {
+    const newotp = generateOTP().toString();
+    const hashedOTP = await bcrypt.hash(
+      newotp,
+      Number(config.bcrypt_salt_round as string)
+    );
+    const jwtPayload1: TJwtPayload = {
+      userId: `${user?._id.toString() as string} ${hashedOTP}`,
+      userRole: user?.role as TUSerRole,
+    };
+    const refresh1Token = createToken(
+      jwtPayload1,
+      config.jwt_refresh1_secret as string,
+      config.jwt_refresh1_expires_in as string
+    );
+    if (!refresh1Token || !hashedOTP) {
       throw new AppError(StatusCodes.BAD_REQUEST, "user regestration faild");
     }
+    const html = otpEmailTemplate(newotp);
+    await sendEmail({
+      to: user?.email,
+      html,
+      subject: "Your one time password(OTP)",
+      text: "This one time password is valid for only 2 minutes",
+    });
     await session.commitTransaction();
     await session.endSession();
     const customerData = mealProviderInfo[0];
-    return { accessToken, refreshToken, customerData };
+    return { accessToken, refreshToken, refresh1Token, customerData };
   } catch (err: any) {
     await session.abortTransaction();
     await session.endSession();
@@ -197,6 +242,14 @@ const getMeroute = async (userId: string, userRole: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, "data not available");
   }
   const result = { user, userdata };
+  return result;
+};
+
+const getUserInfo = async (userId: string) => {
+  const result = await User.findById(userId);
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "data not available");
+  }
   return result;
 };
 
@@ -497,4 +550,5 @@ export const userService = {
   deleteAccount,
   updatePhoneEmail,
   verifyEmail,
+  getUserInfo,
 };

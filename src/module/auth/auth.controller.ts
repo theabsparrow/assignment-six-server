@@ -6,6 +6,7 @@ import { authService } from "./auth.saervice";
 import { cookieOption2, cookieOptions } from "./auth.const";
 import { sendResponse } from "../../utills/sendResponse";
 import { StatusCodes } from "http-status-codes";
+import { JwtPayload } from "jsonwebtoken";
 
 const login = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -106,6 +107,21 @@ const setNewPassword = catchAsync(
   }
 );
 
+const resendOtp = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { userId } = user as JwtPayload;
+    const result = await authService.resendOtp(userId);
+    res.cookie("refresh1Token", result, cookieOptions);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "new otp sent successfully",
+      data: result,
+    });
+  }
+);
+
 export const authController = {
   login,
   logout,
@@ -114,4 +130,5 @@ export const authController = {
   forgetPassword,
   resetPassword,
   setNewPassword,
+  resendOtp,
 };

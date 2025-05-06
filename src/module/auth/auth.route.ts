@@ -73,4 +73,14 @@ router.patch(
   validateRequest(authValidation.setNewPasswordValidationSchema),
   authController.setNewPassword
 );
+router.get(
+  "/resend-otp",
+  auth(
+    USER_ROLE.admin,
+    USER_ROLE.customer,
+    USER_ROLE.mealProvider,
+    USER_ROLE.superAdmin
+  ),
+  authController.resendOtp
+);
 export const authRoute = router;

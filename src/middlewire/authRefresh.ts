@@ -2,7 +2,7 @@
 import { NextFunction, Request, Response } from "express";
 import { catchAsync } from "../utills/catchAsync";
 import { StatusCodes } from "http-status-codes";
-import { timeComparison, verifyToken } from "../module/auth/auth.utills";
+import { verifyToken } from "../module/auth/auth.utills";
 import AppError from "../error/AppError";
 import config from "../config";
 import { JwtPayload } from "jsonwebtoken";
@@ -25,7 +25,7 @@ export const authRefesh = (...requiredRoles: TUSerRole[]) => {
       );
     }
 
-    const { userId, userRole, iat } = decoded as JwtPayload;
+    const { userId, userRole } = decoded as JwtPayload;
     const isUserExists = await User.findById(userId);
     if (!isUserExists) {
       throw new AppError(StatusCodes.NOT_FOUND, "user does not exist");
@@ -39,17 +39,16 @@ export const authRefesh = (...requiredRoles: TUSerRole[]) => {
     if (isUserDeactive === "blocked") {
       throw new AppError(StatusCodes.UNAUTHORIZED, "you are not authortized");
     }
-    if (isUserExists?.passwordChangedAt) {
-      const passwordChangedTime = isUserExists?.passwordChangedAt as Date;
-      const passwordChangedTimeComparison = timeComparison(
-        passwordChangedTime,
-        iat as number
-      );
-
-      if (passwordChangedTimeComparison) {
-        throw new AppError(StatusCodes.UNAUTHORIZED, "you are not authorized");
-      }
-    }
+    // if (isUserExists?.passwordChangedAt) {
+    //   const passwordChangedTime = isUserExists?.passwordChangedAt as Date;
+    //   const passwordChangedTimeComparison = timeComparison(
+    //     passwordChangedTime,
+    //     iat as number
+    //   );
+    //   if (passwordChangedTimeComparison) {
+    //     throw new AppError(StatusCodes.UNAUTHORIZED, "you are not authorized");
+    //   }
+    // }
 
     if (requiredRoles && !requiredRoles.includes(userRole)) {
       throw new AppError(StatusCodes.UNAUTHORIZED, "you are not authortized");

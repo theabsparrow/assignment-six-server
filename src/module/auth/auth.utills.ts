@@ -24,9 +24,9 @@ export const verifyToken = (token: string, secret: string) => {
   return decoded;
 };
 
-export const timeComparison = (time: Date, comparedTime: number) => {
-  const timeInNumber = new Date(time).getTime() / 1000;
-  return timeInNumber > comparedTime;
+export const timeComparison = (passwordChangedAt: Date, tokenIat: number) => {
+  const timeInNumber = new Date(passwordChangedAt).getTime() / 1000;
+  return timeInNumber > tokenIat;
 };
 
 export const passwordMatching = async (password: string, userPass: string) => {

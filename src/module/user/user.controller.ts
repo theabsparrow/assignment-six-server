@@ -12,13 +12,13 @@ const createCustomer = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { user, customer } = req.body;
     const result = await userService.createCustomer(user, customer);
-    const { accessToken, refreshToken, customerData } = result;
+    const { accessToken, refreshToken, refresh1Token, customerData } = result;
     res.cookie("refreshToken", refreshToken, cookieOptions);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,
       message: "customer is regestered successfully",
-      data: { accessToken, refreshToken, customerData },
+      data: { accessToken, refreshToken, refresh1Token, customerData },
     });
   }
 );
@@ -27,13 +27,13 @@ const createMealProvider = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { user, mealProvider } = req.body;
     const result = await userService.createMealProvider(user, mealProvider);
-    const { accessToken, refreshToken, customerData } = result;
+    const { accessToken, refreshToken, refresh1Token, customerData } = result;
     res.cookie("refreshToken", refreshToken, cookieOptions);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,
       message: "meal provider is regestered successfully",
-      data: { accessToken, refreshToken, customerData },
+      data: { accessToken, refreshToken, refresh1Token, customerData },
     });
   }
 );
@@ -47,6 +47,20 @@ const getMeRoute = catchAsync(
       success: true,
       statusCode: StatusCodes.OK,
       message: "info is retirved successfully",
+      data: result,
+    });
+  }
+);
+
+const getUserInfo = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const payload = req.user as JwtPayload;
+    const { userId } = payload;
+    const result = await userService.getUserInfo(userId);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "user info is retirved successfully",
       data: result,
     });
   }
@@ -141,4 +155,5 @@ export const userController = {
   updatePhoneEmail,
   verifyEmail,
   changeUserStatus,
+  getUserInfo,
 };

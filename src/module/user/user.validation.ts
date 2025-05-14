@@ -4,6 +4,7 @@ import { status } from "./user.const";
 const updateEmailPhoneValidationSchema = z.object({
   email: z.string().email("Invalid email").trim().optional(),
   phone: z.string().min(1, "Phone number is required").trim().optional(),
+  password: z.string().min(1, "Password is required").optional(),
 });
 
 const updateStatusValidationSchema = z.object({

@@ -11,7 +11,5 @@ export type TMealProvider = {
   address: string;
   hasKitchen: boolean;
   experienceYears?: number;
-  isCertified: boolean;
-  licenseDocument?: string;
   isDeleted: boolean;
 };

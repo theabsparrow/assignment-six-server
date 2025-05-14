@@ -43,13 +43,6 @@ const MealProviderSchema = new Schema<TMealProvider>(
       type: Number,
       required: [true, "experienced year data is required"],
     },
-    isCertified: {
-      type: Boolean,
-      required: [true, "certefied info is required"],
-    },
-    licenseDocument: {
-      type: String,
-    },
     isDeleted: {
       type: Boolean,
       default: false,

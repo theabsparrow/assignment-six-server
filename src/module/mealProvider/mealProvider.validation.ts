@@ -27,8 +27,6 @@ const mealProviderValidationSchema = z.object({
     dateOfBirth: z.string().min(1, "Date of birth is required"),
     address: z.string().min(1, "Address is required"),
     experienceYears: z.number().int().nonnegative().optional(),
-    isCertified: z.boolean(),
-    licenseDocument: z.string().optional(),
   }),
 });
 

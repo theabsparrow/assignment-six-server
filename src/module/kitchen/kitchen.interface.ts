@@ -17,8 +17,6 @@ export type TKitchen = {
   kitchenType: "Home-based" | "Commercial";
   owner: Types.ObjectId;
   location: string;
-  phoneNumber: string;
-  email: string;
   kitchenPhotos: string;
   hygieneCertified: boolean;
   licenseOrCertificate?: string;

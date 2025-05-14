@@ -16,8 +16,6 @@ const kitchenValidationSchema = z.object({
     .string({ required_error: "Location is required" })
     .min(1, "Location is required")
     .trim(),
-  email: z.string().email("Invalid email").trim().optional(),
-  phoneNumber: z.string().min(1, "Phone number is required").trim(),
   kitchenPhotos: z
     .string({
       required_error: "photo is reqired",

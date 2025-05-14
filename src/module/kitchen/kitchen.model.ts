@@ -20,16 +20,6 @@ const KitchenSchema = new Schema<TKitchen>(
       required: [true, "kitchen owner is required"],
       unique: true,
     },
-    email: {
-      type: String,
-      required: [true, "email is required"],
-      trim: true,
-    },
-    phoneNumber: {
-      type: String,
-      required: [true, "phone number is required"],
-      trim: true,
-    },
     location: {
       type: String,
       required: [true, "kitchen location is required"],

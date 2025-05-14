@@ -135,24 +135,6 @@ const createMealProvider = async (
       "this phone number is already in used"
     );
   }
-  if (mealProvider?.isCertified && !mealProvider?.licenseDocument) {
-    throw new AppError(
-      StatusCodes.CONFLICT,
-      "if you are certified then provied your license number"
-    );
-  }
-  if (mealProvider?.licenseDocument) {
-    const isLicenseExists = await MealProvider.findOne({
-      licenseDocument: mealProvider?.licenseDocument,
-      isDeleted: false,
-    });
-    if (isLicenseExists) {
-      throw new AppError(
-        StatusCodes.CONFLICT,
-        "this license number is already in used"
-      );
-    }
-  }
   const age = calculateAge(mealProvider?.dateOfBirth);
   if (age < 18) {
     throw new AppError(
@@ -431,9 +413,15 @@ const deleteAccount = async (id: string, role: string) => {
 };
 
 const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
-  const { email, phone } = payload;
+  const { email, phone, password } = payload;
 
   const session = await mongoose.startSession();
+  if (email && !password) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "You need the password to update the email"
+    );
+  }
   try {
     session.startTransaction();
     let updatedNumber = null;

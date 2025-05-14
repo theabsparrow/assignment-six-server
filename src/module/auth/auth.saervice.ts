@@ -15,6 +15,9 @@ import { TUSerRole } from "../user/user.interface";
 import { JwtPayload } from "jsonwebtoken";
 import { otpEmailTemplate } from "../../utills/otpEmailTemplate";
 import { sendEmail } from "../../utills/sendEmail";
+import { USER_ROLE } from "../user/user.const";
+import { MealProvider } from "../mealProvider/mealProvider.model";
+import { Customer } from "../customer/customer.model";
 
 const login = async (payload: TLogin) => {
   const email = payload?.email;
@@ -140,14 +143,38 @@ const generateAccessToken = async (user: JwtPayload) => {
   return accessToken;
 };
 
-const forgetPassword = async (email: string) => {
+const searchWithEmail = async (email: string) => {
+  const result = await verifyUserByEmail(email);
+  let userInfo;
+  if (result?.role === USER_ROLE.mealProvider) {
+    userInfo = await MealProvider.findOne({ user: result?._id }).select(
+      "name profileImage"
+    );
+  }
+  if (result?.role === USER_ROLE.customer || result?.role === USER_ROLE.admin) {
+    userInfo = await Customer.findOne({ user: result?._id }).select(
+      "name profileImage"
+    );
+  }
+  if (result?.role === USER_ROLE.superAdmin) {
+    userInfo = result;
+  }
+  if (!userInfo) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      " the email you provided does not found"
+    );
+  }
+  return { userInfo, email: result?.email };
+};
+
+const sendOTP = async (email: string) => {
   const result = await verifyUserByEmail(email);
   const newotp = generateOTP().toString();
   const hashedOTP = await bcrypt.hash(
     newotp,
     Number(config.bcrypt_salt_round as string)
   );
-
   const jwtPayload: TJwtPayload = {
     userId: `${result?._id.toString() as string} ${hashedOTP}`,
     userRole: result?.role as TUSerRole,
@@ -173,24 +200,26 @@ const forgetPassword = async (email: string) => {
 };
 
 const resetPassword = async (user: JwtPayload, oneTimePass: string) => {
-  const { userId, otp } = user;
-  const userInfo = await verifyUser(userId);
+  const { userId } = user;
+  const hashedOtp = userId.split(" ")[1];
+  const id = userId.split(" ")[0];
+  const userInfo = await verifyUser(id);
   const jwtPayload: TJwtPayload = {
     userId: userInfo?._id.toString() as string,
     userRole: userInfo?.role as TUSerRole,
   };
-  const tokenForSetNewPass = createToken(
-    jwtPayload,
-    config.jwt_access_secret as string,
-    "5m"
-  );
-  const otpMatching = await passwordMatching(oneTimePass, otp);
+  const otpMatching = await passwordMatching(oneTimePass, hashedOtp);
   if (!otpMatching) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "the otp you have provided is wrong"
     );
   }
+  const tokenForSetNewPass = createToken(
+    jwtPayload,
+    config.jwt_refresh1_secret as string,
+    "5m"
+  );
   return tokenForSetNewPass;
 };
 
@@ -224,7 +253,7 @@ const setNewPassword = async (user: JwtPayload, newPassword: string) => {
 };
 
 const resendOtp = async (id: string) => {
-  const user = await User.findById(id).select("role");
+  const user = await User.findById(id).select("role email");
   if (!user) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to resend the otp");
   }
@@ -259,8 +288,9 @@ export const authService = {
   login,
   changePassword,
   generateAccessToken,
-  forgetPassword,
+  sendOTP,
   resetPassword,
   setNewPassword,
   resendOtp,
+  searchWithEmail,
 };

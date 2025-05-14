@@ -17,6 +17,12 @@ import { TemailOrder, TemailOrderStatus } from "../../interface/global";
 import { changeStatusEmailTemplate } from "../../utills/changeStatusEmail";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { User } from "../user/user.model";
+import {
+  isCustomerExists,
+  isKitchen,
+  isOrder,
+  providerEmail,
+} from "./order.utilities";
 
 const createOrder = async ({
   id,
@@ -28,7 +34,7 @@ const createOrder = async ({
   payload: TOrder;
 }) => {
   const isMealExist = await Meal.findById(id).select(
-    "kitchen isAvailable title"
+    "owner kitchen isAvailable title"
   );
   if (!isMealExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "this meal data not found");
@@ -39,34 +45,15 @@ const createOrder = async ({
       "this meal is not available right now"
     );
   }
-  const isKitchen = await Kitchen.findById(isMealExist?.kitchen).select(
-    "isDeleted isActive email kitchenName"
+  const provider = await providerEmail(isMealExist?.owner.toString() as string);
+
+  const isKitchenExists = await isKitchen(
+    isMealExist?.kitchen?.toString() as string
   );
-  if (!isKitchen) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "the kitchen of the meal is unavailable"
-    );
-  }
-  if (isKitchen?.isDeleted) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "the kitchen of the meal is unavailable"
-    );
-  }
-
-  if (!isKitchen?.isActive) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "the kitchen of the meal is not active right now"
-    );
-  }
-
   const isUserExists = await User.findById(userId);
   if (!isUserExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
   }
-
   const isCustomerExist = await Customer.findOne({ user: userId }).select(
     "name"
   );
@@ -74,7 +61,7 @@ const createOrder = async ({
     throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
   }
   payload.customerId = isCustomerExist?._id;
-  payload.kitchenId = isKitchen?._id;
+  payload.kitchenId = isKitchenExists?._id;
   payload.mealId = isMealExist?._id;
   payload.totalPrice = Number((payload.price * payload.quantity).toFixed(2));
   if (payload?.mealPlanner) {
@@ -87,20 +74,19 @@ const createOrder = async ({
   const orderInfo = await Order.findById(result?._id).populate(
     "customerId kitchenId mealId mealPlanner"
   );
-
   if (result && orderInfo) {
     const info: TemailOrder = {
       customerName: isCustomerExist?.name,
       customerEmail: isUserExists?.email,
       orderDate: orderInfo?.startDate,
-      kitchenName: isKitchen?.kitchenName,
+      kitchenName: isKitchenExists?.kitchenName,
       mealName: isMealExist?.title,
       totalAmount: orderInfo?.totalPrice,
     };
     const link = `${config.client_certain_route}/mealProvider/${result?._id}`;
     const html = orderEmailTemplate(link, info);
     await sendEmail({
-      to: isKitchen?.email,
+      to: provider?.email,
       html,
       subject: `${isMealExist?.title} order is placed`,
       text: "check this order to know more about this",
@@ -180,28 +166,13 @@ const changeOrderStatus = async ({
   if (!isUserExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "user data not found");
   }
-  const isOrderExists = await Order.findById(id);
-  if (!isOrderExists) {
-    throw new AppError(StatusCodes.NOT_FOUND, "order data not found");
-  }
-  if (isOrderExists?.isDeleted) {
-    throw new AppError(StatusCodes.NOT_FOUND, "order data not found");
-  }
-  if (!isOrderExists?.isActive) {
-    throw new AppError(
-      StatusCodes.CONFLICT,
-      "this order is already deactivate"
-    );
-  }
-  if (
-    isOrderExists?.status === "Cancelled" ||
-    isOrderExists?.status === "Delivered"
-  ) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      `order status is already ${isOrderExists?.status}. you can't change it`
-    );
-  }
+  const isOrderExists = await isOrder(id);
+
+  const customerExists = await isCustomerExists(
+    isOrderExists?.customerId.toString() as string
+  );
+  info.customerName = customerExists?.name;
+  info.customerEmail = customerExists?.email;
 
   if (
     userRole === USER_ROLE.customer &&
@@ -235,11 +206,9 @@ const changeOrderStatus = async ({
     ) {
       throw new AppError(
         StatusCodes.UNAUTHORIZED,
-        "you can`t cancell this order"
+        "you can`t change this order status"
       );
     }
-    info.customerName = isCustomerExist?.name;
-    info.customerEmail = isUserExists?.email;
   }
 
   if (userRole === USER_ROLE.mealProvider) {
@@ -294,8 +263,7 @@ const changeOrderStatus = async ({
         );
       }
     }
-    await session.commitTransaction();
-    await session.endSession();
+
     if (
       userRole === USER_ROLE.admin ||
       userRole === USER_ROLE.mealProvider ||
@@ -322,7 +290,8 @@ const changeOrderStatus = async ({
         }
       }
     }
-
+    await session.commitTransaction();
+    await session.endSession();
     const result = await Order.findById(isOrderExists?._id);
     return result;
   } catch (err: any) {

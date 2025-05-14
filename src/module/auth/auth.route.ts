@@ -6,6 +6,7 @@ import { auth } from "../../middlewire/auth";
 import { USER_ROLE } from "../user/user.const";
 // import validaterefreshToken from "../../middlewire/validateRefreshToken";
 import { authRefesh } from "../../middlewire/authRefresh";
+import { verifyOtpToken } from "../../middlewire/auth.verifyToken";
 
 const router = Router();
 
@@ -47,13 +48,18 @@ router.post(
   authController.generateAccessToken
 );
 router.post(
-  "/forget-password",
+  "/search-email",
   validateRequest(authValidation.forgetPasswordValidationSchema),
-  authController.forgetPassword
+  authController.searchWithEmail
+);
+router.post(
+  "/send-otp",
+  validateRequest(authValidation.forgetPasswordValidationSchema),
+  authController.sendOTP
 );
 router.post(
   "/reset-password",
-  auth(
+  verifyOtpToken(
     USER_ROLE.admin,
     USER_ROLE.customer,
     USER_ROLE.mealProvider,
@@ -64,7 +70,7 @@ router.post(
 );
 router.patch(
   "/set-password",
-  auth(
+  verifyOtpToken(
     USER_ROLE.admin,
     USER_ROLE.customer,
     USER_ROLE.mealProvider,

@@ -64,14 +64,27 @@ const generateAccessToken = catchAsync(
   }
 );
 
-const forgetPassword = catchAsync(
+const searchWithEmail = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email } = req.body;
-    const result = await authService.forgetPassword(email);
+    const result = await authService.searchWithEmail(email);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "generated otp successfully",
+      message: "user find successfully",
+      data: result,
+    });
+  }
+);
+
+const sendOTP = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+    const result = await authService.sendOTP(email);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "otp generated successfully",
       data: result,
     });
   }
@@ -127,8 +140,9 @@ export const authController = {
   logout,
   changePassword,
   generateAccessToken,
-  forgetPassword,
+  sendOTP,
   resetPassword,
   setNewPassword,
   resendOtp,
+  searchWithEmail,
 };

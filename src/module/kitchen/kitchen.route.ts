@@ -15,7 +15,7 @@ router.post(
 );
 router.get(
   "/all-kitchen",
-  auth(
+  authRefesh(
     USER_ROLE.admin,
     USER_ROLE.customer,
     USER_ROLE.mealProvider,
@@ -30,7 +30,7 @@ router.get(
 );
 router.get(
   "/:id",
-  auth(
+  authRefesh(
     USER_ROLE.admin,
     USER_ROLE.customer,
     USER_ROLE.mealProvider,

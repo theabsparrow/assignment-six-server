@@ -17,11 +17,12 @@ export type TKitchen = {
   kitchenType: "Home-based" | "Commercial";
   owner: Types.ObjectId;
   location: string;
-  kitchenPhotos: string;
+  kitchenPhoto: string;
   hygieneCertified: boolean;
+  hygieneCertificate?: string;
   licenseOrCertificate?: string;
   foodHandlerExperience: string;
-  foodPreference?: FoodPreferenceOption[];
+  foodPreference: FoodPreferenceOption[];
   mealTimePerDay: TMealTime[];
   cookingDays: TCookingDay[];
   specialEquipments?: string[];

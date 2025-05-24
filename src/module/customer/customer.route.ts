@@ -4,17 +4,18 @@ import { USER_ROLE } from "../user/user.const";
 import { customerController } from "./customer.controller";
 import validateRequest from "../../middlewire/validateRequest";
 import { customerValidation } from "./customer.validation";
+import { authRefesh } from "../../middlewire/authRefresh";
 
 const router = Router();
 
 router.get(
   "/get-allCustomer",
-  auth(USER_ROLE.admin, USER_ROLE.superAdmin),
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
   customerController.getAllCustomer
 );
 router.get(
   "/:id",
-  auth(USER_ROLE.admin, USER_ROLE.superAdmin),
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
   customerController.getASingleCustomer
 );
 router.patch(

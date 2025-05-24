@@ -16,7 +16,7 @@ const kitchenValidationSchema = z.object({
     .string({ required_error: "Location is required" })
     .min(1, "Location is required")
     .trim(),
-  kitchenPhotos: z
+  kitchenPhoto: z
     .string({
       required_error: "photo is reqired",
     })
@@ -24,13 +24,12 @@ const kitchenValidationSchema = z.object({
   hygieneCertified: z.boolean({
     required_error: "hygine certificate is required",
   }),
+  hygieneCertificate: z.string().optional(),
   licenseOrCertificate: z.string().optional(),
   foodHandlerExperience: z
     .string({ required_error: "Experience is required" })
     .min(1, "Experience is required"),
-  foodPreference: z
-    .array(z.enum([...foodPreferance] as [string, ...string[]]))
-    .optional(),
+  foodPreference: z.array(z.enum([...foodPreferance] as [string, ...string[]])),
   mealTimePerDay: z.array(z.enum([...mealTime] as [string, ...string[]])),
   cookingDays: z.array(z.enum([...weekDays] as [string, ...string[]])),
   specialEquipments: z.array(z.string()).optional(),

@@ -227,13 +227,13 @@ const getMeroute = async (userId: string, userRole: string) => {
   return result;
 };
 
-const getUserInfo = async (userId: string) => {
-  const result = await User.findById(userId);
-  if (!result) {
-    throw new AppError(StatusCodes.NOT_FOUND, "data not available");
-  }
-  return result;
-};
+// const getUserInfo = async (userId: string) => {
+//   const result = await User.findById(userId);
+//   if (!result) {
+//     throw new AppError(StatusCodes.NOT_FOUND, "data not available");
+//   }
+//   return result;
+// };
 
 const changeUserStatus = async ({
   status,
@@ -538,5 +538,5 @@ export const userService = {
   deleteAccount,
   updatePhoneEmail,
   verifyEmail,
-  getUserInfo,
+  // getUserInfo,
 };

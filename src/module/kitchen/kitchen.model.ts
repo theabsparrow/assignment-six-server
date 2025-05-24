@@ -25,7 +25,7 @@ const KitchenSchema = new Schema<TKitchen>(
       required: [true, "kitchen location is required"],
       trim: true,
     },
-    kitchenPhotos: {
+    kitchenPhoto: {
       type: String,
       required: [true, "kitchen photo is required"],
     },
@@ -38,9 +38,13 @@ const KitchenSchema = new Schema<TKitchen>(
       type: Boolean,
       default: false,
     },
+    hygieneCertificate: {
+      type: String,
+      default: "",
+    },
     licenseOrCertificate: {
       type: String,
-      trim: true,
+      default: "",
     },
     foodHandlerExperience: {
       type: String,

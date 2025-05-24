@@ -8,9 +8,20 @@ import { Kitchen } from "../kitchen/kitchen.model";
 import { Meal } from "./meal.model";
 import QueryBuilder from "../../builder/QueryBuilder";
 import mongoose from "mongoose";
+import { User } from "../user/user.model";
 
 const createMeal = async (user: JwtPayload, payload: TMeal) => {
   const { userId } = user;
+  const isUSerExists = await User.findById(userId);
+  if (!isUSerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+  }
+  if (!isUSerExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
   const isMealProviderExists = await MealProvider.findOne({
     user: userId,
   }).select("user");
@@ -99,6 +110,16 @@ const updateMeal = async ({
   id: string;
   userId: string;
 }) => {
+  const isUSerExists = await User.findById(userId);
+  if (!isUSerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+  }
+  if (!isUSerExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
   const isMealExists = await Meal.findById(id);
   if (!isMealExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");

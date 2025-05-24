@@ -6,6 +6,7 @@ import { TRating } from "./rating.interface";
 import { Meal } from "../meal/meal.model";
 import { Rating } from "./rating.model";
 import mongoose from "mongoose";
+import { User } from "../user/user.model";
 
 const addRating = async ({
   payload,
@@ -16,9 +17,19 @@ const addRating = async ({
   userId: string;
   id: string;
 }) => {
-  const isCustomerExist = await Customer.findOne({ user: userId }).select(
-    "user"
-  );
+  const isUSerExists = await User.findById(userId);
+  if (!isUSerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+  }
+  if (!isUSerExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
+  const isCustomerExist = await Customer.findOne({
+    user: isUSerExists?._id,
+  }).select("user");
   if (!isCustomerExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "customer data not matched");
   }

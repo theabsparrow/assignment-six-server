@@ -21,7 +21,11 @@ import {
   isCustomerExists,
   isKitchen,
   isOrder,
+  mealInfo,
+  mealProviderInfo,
+  priorityToChange,
   providerEmail,
+  userInfo,
 } from "./order.utilities";
 
 const createOrder = async ({
@@ -33,6 +37,16 @@ const createOrder = async ({
   userId: string;
   payload: TOrder;
 }) => {
+  const isUSerExists = await User.findById(userId);
+  if (!isUSerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+  }
+  if (!isUSerExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
   const isMealExist = await Meal.findById(id).select(
     "owner kitchen isAvailable title"
   );
@@ -160,79 +174,36 @@ const changeOrderStatus = async ({
   status: TOrderStatus;
 }) => {
   const { userRole, userId } = user;
-  const info: Partial<TemailOrderStatus> = {};
-
-  const isUserExists = await User.findById(userId).select("email");
-  if (!isUserExists) {
-    throw new AppError(StatusCodes.NOT_FOUND, "user data not found");
-  }
+  priorityToChange(userRole, status);
+  const userData = await userInfo(userId);
   const isOrderExists = await isOrder(id);
-
   const customerExists = await isCustomerExists(
     isOrderExists?.customerId.toString() as string
   );
+  const info: Partial<TemailOrderStatus> = {};
   info.customerName = customerExists?.name;
   info.customerEmail = customerExists?.email;
+  const mealName = await mealInfo(isOrderExists?.mealId.toString());
 
   if (
     userRole === USER_ROLE.customer &&
-    (status === "Confirmed" || status === "Delivered")
+    isOrderExists?.customerId.toString() !== userData?.id.toString()
   ) {
     throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      `you can't change the status to ${status}`
+      StatusCodes.UNAUTHORIZED,
+      "you can`t change this order status"
     );
-  }
-
-  const mealName = await Meal.findById(isOrderExists?.mealId).select(
-    "title isAvailable"
-  );
-  if (!mealName) {
-    throw new AppError(StatusCodes.NOT_FOUND, "meal data not found");
-  }
-  if (!mealName?.isAvailable) {
-    throw new AppError(StatusCodes.NOT_FOUND, "meal data not found");
-  }
-
-  if (userRole === USER_ROLE.customer) {
-    const isCustomerExist = await Customer.findOne({ user: userId }).select(
-      "name"
-    );
-    if (!isCustomerExist) {
-      throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
-    }
-    if (
-      isOrderExists?.customerId.toString() !== isCustomerExist?._id.toString()
-    ) {
-      throw new AppError(
-        StatusCodes.UNAUTHORIZED,
-        "you can`t change this order status"
-      );
-    }
   }
 
   if (userRole === USER_ROLE.mealProvider) {
-    const isMealProviderExist = await MealProvider.findOne({
-      user: userId,
-    }).select("user");
-    if (!isMealProviderExist) {
-      throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
-    }
-    const isKitchenExists = await Kitchen.findOne({
-      owner: isMealProviderExist?._id,
-    }).select("owner kitchenName");
-    if (!isKitchenExists) {
-      throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not found");
-    }
-    if (
-      isOrderExists?.kitchenId.toString() !== isKitchenExists?._id.toString()
-    ) {
+    const kitchenInfo = await mealProviderInfo(userId);
+    if (isOrderExists?.kitchenId.toString() !== kitchenInfo?._id.toString()) {
       throw new AppError(
         StatusCodes.UNAUTHORIZED,
         "you can`t change the status of this order"
       );
     }
-    info.kitchenName = isKitchenExists?.kitchenName;
+    info.kitchenName = kitchenInfo?.kitchenName;
   }
 
   const session = await mongoose.startSession();
@@ -303,6 +274,16 @@ const changeOrderStatus = async ({
 
 const updateDeliveryCount = async (id: string, user: JwtPayload) => {
   const { userId, userRole } = user;
+  const isUSerExists = await User.findById(userId);
+  if (!isUSerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+  }
+  if (!isUSerExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
   const isOrderExists = await Order.findById(id).select(
     "isDeleted isActive status deliveredCount orderType kitchenId"
   );

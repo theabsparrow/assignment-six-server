@@ -4,6 +4,7 @@ import { USER_ROLE } from "../user/user.const";
 import validateRequest from "../../middlewire/validateRequest";
 import { kitchenValidation } from "./kitchen.validation";
 import { kitchenController } from "./kitchen.controller";
+import { authRefesh } from "../../middlewire/authRefresh";
 
 const router = Router();
 router.post(
@@ -24,7 +25,7 @@ router.get(
 );
 router.get(
   "/myKitchen",
-  auth(USER_ROLE.mealProvider),
+  authRefesh(USER_ROLE.mealProvider),
   kitchenController.getMyKitchen
 );
 router.get(

@@ -8,8 +8,19 @@ import { MealPlanner } from "./mealPlanner.model";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { JwtPayload } from "jsonwebtoken";
 import mongoose from "mongoose";
+import { User } from "../user/user.model";
 
 const createMealPlan = async (payload: TMealPlanner, userId: string) => {
+  const isUSerExists = await User.findById(userId);
+  if (!isUSerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+  }
+  if (!isUSerExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
   const customerId = await Customer.findOne({ user: userId }).select("user");
   if (!customerId) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create planner");
@@ -87,6 +98,16 @@ const updateMealPlan = async ({
   user: JwtPayload;
 }) => {
   const { userId } = user;
+  const isUSerExists = await User.findById(userId);
+  if (!isUSerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+  }
+  if (!isUSerExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
   const mealPlannerExist = await MealPlanner.findById(id).select("customer");
   if (!mealPlannerExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "data not dound");

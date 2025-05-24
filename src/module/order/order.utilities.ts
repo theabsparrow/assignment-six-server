@@ -5,6 +5,8 @@ import { MealProvider } from "../mealProvider/mealProvider.model";
 import { User } from "../user/user.model";
 import { Order } from "./order.model";
 import { Customer } from "../customer/customer.model";
+import { USER_ROLE } from "../user/user.const";
+import { Meal } from "../meal/meal.model";
 
 export const isKitchen = async (id: string) => {
   const isKitchenExists = await Kitchen.findById(id).select(
@@ -103,4 +105,67 @@ export const isCustomerExists = async (id: string) => {
     email: isCustomer?.email,
     id: isCustomerExists?._id,
   };
+};
+
+export const priorityToChange = (role: string, status: string) => {
+  if (
+    role === USER_ROLE.customer &&
+    (status === "Confirmed" || status === "Delivered")
+  ) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      `you can't change the status to ${status}`
+    );
+  }
+};
+
+export const mealInfo = async (id: string) => {
+  const mealName = await Meal.findById(id).select("title isAvailable");
+  if (!mealName) {
+    throw new AppError(StatusCodes.NOT_FOUND, "meal data not found");
+  }
+  if (!mealName?.isAvailable) {
+    throw new AppError(StatusCodes.NOT_FOUND, "meal data not found");
+  }
+  return mealName;
+};
+
+export const userInfo = async (id: string) => {
+  const isUserExists = await User.findById(id).select(
+    "email verifiedWithEmail"
+  );
+  if (!isUserExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "user data not found");
+  }
+  if (!isUserExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
+  const isCustomerExist = await Customer.findOne({ user: id }).select("name");
+  if (!isCustomerExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
+  }
+  return {
+    email: isUserExists?.email,
+    name: isCustomerExist?.name,
+    id: isCustomerExist?._id,
+  };
+};
+
+export const mealProviderInfo = async (id: string) => {
+  const isMealProviderExist = await MealProvider.findOne({
+    user: id,
+  }).select("user");
+  if (!isMealProviderExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, "meal provider data not found");
+  }
+  const isKitchenExists = await Kitchen.findOne({
+    owner: isMealProviderExist?._id,
+  }).select("owner kitchenName");
+  if (!isKitchenExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not found");
+  }
+  return isKitchenExists;
 };

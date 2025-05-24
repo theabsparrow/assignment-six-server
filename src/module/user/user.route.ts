@@ -29,30 +29,18 @@ router.get(
     USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
-  // auth(
-  //   USER_ROLE.admin,
-  //   USER_ROLE.customer,
-  //   USER_ROLE.mealProvider,
-  //   USER_ROLE.superAdmin
-  // ),
   userController.getMeRoute
 );
-router.get(
-  "/my-info",
-  authRefesh(
-    USER_ROLE.admin,
-    USER_ROLE.customer,
-    USER_ROLE.mealProvider,
-    USER_ROLE.superAdmin
-  ),
-  // auth(
-  //   USER_ROLE.admin,
-  //   USER_ROLE.customer,
-  //   USER_ROLE.mealProvider,
-  //   USER_ROLE.superAdmin
-  // ),
-  userController.getUserInfo
-);
+// router.get(
+//   "/my-info",
+//   authRefesh(
+//     USER_ROLE.admin,
+//     USER_ROLE.customer,
+//     USER_ROLE.mealProvider,
+//     USER_ROLE.superAdmin
+//   ),
+//   userController.getUserInfo
+// );
 router.patch(
   "/change-status/:id",
   auth(USER_ROLE.admin, USER_ROLE.superAdmin),

@@ -16,6 +16,12 @@ const createKitchen = async (id: string, payload: TKitchen) => {
   if (!isUSerExists) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
   }
+  if (!isUSerExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
   const isMealProvider = await MealProvider.findOne({ user: id }).select(
     "user"
   );
@@ -33,6 +39,12 @@ const createKitchen = async (id: string, payload: TKitchen) => {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "commercial kitchen must have a license or certificate"
+    );
+  }
+  if (payload?.hygieneCertified && !payload?.hygieneCertificate) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "hygiene certified kitchen must show its certificate"
     );
   }
   payload.owner = isMealProvider?._id;
@@ -126,6 +138,16 @@ const updateKitchen = async ({
   user: JwtPayload;
 }) => {
   const { userId } = user;
+  const isUSerExists = await User.findById(userId);
+  if (!isUSerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+  }
+  if (!isUSerExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
   const isMealProvider = await MealProvider.findOne({ user: userId }).select(
     "user"
   );

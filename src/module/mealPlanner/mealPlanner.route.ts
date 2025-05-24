@@ -4,6 +4,7 @@ import { USER_ROLE } from "../user/user.const";
 import validateRequest from "../../middlewire/validateRequest";
 import { mealPlannerValidation } from "./mealPlanner.validation";
 import { mealPlannerController } from "./mealPlanner.controller";
+import { authRefesh } from "../../middlewire/authRefresh";
 
 const router = Router();
 router.post(
@@ -14,12 +15,12 @@ router.post(
 );
 router.get(
   "/get-myPlans",
-  auth(USER_ROLE.customer),
+  authRefesh(USER_ROLE.customer),
   mealPlannerController.getMyPlans
 );
 router.get(
   "/get-myPlan/:id",
-  auth(USER_ROLE.customer),
+  authRefesh(USER_ROLE.customer),
   mealPlannerController.getASingleMyPlan
 );
 router.patch(

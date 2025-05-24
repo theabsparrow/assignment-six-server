@@ -4,6 +4,7 @@ import { USER_ROLE } from "../user/user.const";
 import validateRequest from "../../middlewire/validateRequest";
 import { orderValidation } from "./order.validation";
 import { orderController } from "./order.controller";
+import { authRefesh } from "../../middlewire/authRefresh";
 
 const router = Router();
 router.post(
@@ -12,10 +13,14 @@ router.post(
   validateRequest(orderValidation.orderValidationSchema),
   orderController.createOrder
 );
-router.get("/myOrders", auth(USER_ROLE.customer), orderController.getMyOrder);
+router.get(
+  "/myOrders",
+  authRefesh(USER_ROLE.customer),
+  orderController.getMyOrder
+);
 router.get(
   "/mealProvider-orders",
-  auth(USER_ROLE.mealProvider),
+  authRefesh(USER_ROLE.mealProvider),
   orderController.getMealProvidersOrder
 );
 router.patch(

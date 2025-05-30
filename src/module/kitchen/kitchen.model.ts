@@ -46,10 +46,6 @@ const KitchenSchema = new Schema<TKitchen>(
       type: String,
       default: "",
     },
-    foodHandlerExperience: {
-      type: String,
-      required: [true, "experienced is required"],
-    },
     mealTimePerDay: {
       type: [String],
       enum: mealTime,

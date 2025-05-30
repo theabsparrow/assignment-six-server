@@ -167,6 +167,19 @@ const updateKitchen = async ({
       "commercial kitchen must have a license or certificate"
     );
   }
+  if (payload.hygieneCertified && !payload.hygieneCertificate) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "if your kitchen is hygiene certified then shoow the certificate"
+    );
+  }
+  if (payload?.kitchenType === "Home-based") {
+    payload.licenseOrCertificate = "";
+  }
+  if (!payload.hygieneCertified) {
+    payload.hygieneCertificate = "";
+  }
+
   const id = isKitchenExist?._id;
   const {
     addFoodPreference,

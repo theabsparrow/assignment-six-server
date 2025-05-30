@@ -21,7 +21,6 @@ export type TKitchen = {
   hygieneCertified: boolean;
   hygieneCertificate?: string;
   licenseOrCertificate?: string;
-  foodHandlerExperience: string;
   foodPreference: FoodPreferenceOption[];
   mealTimePerDay: TMealTime[];
   cookingDays: TCookingDay[];

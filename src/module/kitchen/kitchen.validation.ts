@@ -26,9 +26,6 @@ const kitchenValidationSchema = z.object({
   }),
   hygieneCertificate: z.string().optional(),
   licenseOrCertificate: z.string().optional(),
-  foodHandlerExperience: z
-    .string({ required_error: "Experience is required" })
-    .min(1, "Experience is required"),
   foodPreference: z.array(z.enum([...foodPreferance] as [string, ...string[]])),
   mealTimePerDay: z.array(z.enum([...mealTime] as [string, ...string[]])),
   cookingDays: z.array(z.enum([...weekDays] as [string, ...string[]])),
@@ -52,11 +49,6 @@ const updateKitchenValidationSchema = z.object({
     .url("Each kitchen photo must be a valid URL"),
   hygieneCertified: z.boolean().optional(),
   licenseOrCertificate: z.string().optional(),
-  foodHandlerExperience: z
-    .string()
-    .min(1, "Experience is required")
-    .trim()
-    .optional(),
   addFoodPreference: z
     .array(z.enum([...foodPreferance] as [string, ...string[]]))
     .optional(),

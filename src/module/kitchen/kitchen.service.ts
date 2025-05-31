@@ -305,6 +305,12 @@ const deleteMyKitchen = async (id: string, payload: { password: string }) => {
   if (!isUserExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "user data not found");
   }
+  if (!isUserExist?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first to delete your kitchen"
+    );
+  }
   const userPass = isUserExist?.password;
   const isPasswordMatched = await passwordMatching(payload?.password, userPass);
   if (!isPasswordMatched) {
@@ -326,12 +332,34 @@ const deleteMyKitchen = async (id: string, payload: { password: string }) => {
       "something went wrong, data not found"
     );
   }
-  await Kitchen.findOneAndUpdate(
-    { owner: mealProvider?._id },
-    { isDeleted: true },
-    { new: true }
-  );
-  return null;
+
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const deleteKitchen = await Kitchen.findOneAndUpdate(
+      { owner: mealProvider?._id },
+      { isDeleted: true },
+      { new: true, runValidators: true }
+    );
+    if (!deleteKitchen) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "failed to delete kitchen");
+    }
+    const updateMealProvider = await MealProvider.findByIdAndUpdate(
+      mealProvider?._id,
+      { hasKitchen: false },
+      { new: true, runValidators: true }
+    );
+    if (!updateMealProvider) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "failed to delete kitchen");
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    return null;
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(StatusCodes.BAD_REQUEST, err);
+  }
 };
 
 const deleteKitchen = async (id: string) => {
@@ -343,15 +371,40 @@ const deleteKitchen = async (id: string) => {
   if (isKitchenDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not foun");
   }
-  const result = await Kitchen.findByIdAndUpdate(
-    id,
-    { isDeleted: true },
-    { new: true }
-  );
-  if (!result) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "faild to delete the kitchen");
+
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const result = await Kitchen.findByIdAndUpdate(
+      id,
+      { isDeleted: true },
+      { new: true, runValidators: true }
+    );
+    if (!result) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "faild to delete the kitchen"
+      );
+    }
+    const updateUser = await MealProvider.findByIdAndUpdate(
+      isKitchenExists?.owner,
+      { hasKitchen: false },
+      { new: true, runValidators: true }
+    );
+    if (!updateUser) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "faild to delete the kitchen"
+      );
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    return null;
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(StatusCodes.BAD_REQUEST, err);
   }
-  return null;
 };
 
 export const kitchenService = {

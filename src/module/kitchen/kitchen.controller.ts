@@ -78,10 +78,40 @@ const updateKitchenInfo = catchAsync(
   }
 );
 
+const deleteMyKitchen = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const payload = req.body;
+    const user = req.user;
+    const { userId } = user as JwtPayload;
+    const result = await kitchenService.deleteMyKitchen(userId, payload);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "kitchen is deleted successfully",
+      data: result,
+    });
+  }
+);
+
+const deleteKitche = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const result = await kitchenService.deleteKitchen(id);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "kitchen is deleted successfully",
+      data: result,
+    });
+  }
+);
+
 export const kitchenController = {
   createKitchen,
   getAllKitchen,
   getASingleKitchen,
   updateKitchenInfo,
   getMyKitchen,
+  deleteMyKitchen,
+  deleteKitche,
 };

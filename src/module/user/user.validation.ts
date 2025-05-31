@@ -25,9 +25,13 @@ const refreshToken1ValidationSchema = z.object({
   }),
 });
 
+const deleteValidationSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+});
 export const userValidation = {
   updateEmailPhoneValidationSchema,
   verifyEmailValidationSchema,
   updateStatusValidationSchema,
   refreshToken1ValidationSchema,
+  deleteValidationSchema,
 };

@@ -86,7 +86,8 @@ const deleteMyAccount = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
     const { userId } = user as JwtPayload;
-    const result = await userService.dleteMyAccount(userId);
+    const payload = req.body;
+    const result = await userService.dleteMyAccount(userId, payload);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

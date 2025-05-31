@@ -5,6 +5,7 @@ import validateRequest from "../../middlewire/validateRequest";
 import { kitchenValidation } from "./kitchen.validation";
 import { kitchenController } from "./kitchen.controller";
 import { authRefesh } from "../../middlewire/authRefresh";
+import { userValidation } from "../user/user.validation";
 
 const router = Router();
 router.post(
@@ -44,5 +45,18 @@ router.patch(
   auth(USER_ROLE.mealProvider),
   validateRequest(kitchenValidation.updateKitchenValidationSchema),
   kitchenController.updateKitchenInfo
+);
+
+router.delete(
+  "/delete-myKitchen",
+  auth(USER_ROLE.mealProvider),
+  validateRequest(userValidation.deleteValidationSchema),
+  kitchenController.deleteMyKitchen
+);
+
+router.delete(
+  "/delete-kitchen/:id",
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  kitchenController.deleteKitche
 );
 export const kitchenRoute = router;

@@ -55,6 +55,7 @@ router.delete(
     USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
+  validateRequest(userValidation.deleteValidationSchema),
   userController.deleteMyAccount
 );
 router.delete(

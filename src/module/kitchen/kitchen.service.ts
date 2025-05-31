@@ -10,6 +10,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { USER_ROLE } from "../user/user.const";
 import mongoose from "mongoose";
 import { User } from "../user/user.model";
+import { passwordMatching } from "../auth/auth.utills";
 
 const createKitchen = async (id: string, payload: TKitchen) => {
   const isUSerExists = await User.findById(id);
@@ -299,10 +300,66 @@ const updateKitchen = async ({
   }
 };
 
+const deleteMyKitchen = async (id: string, payload: { password: string }) => {
+  const isUserExist = await User.findById(id).select("password isDeleted");
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, "user data not found");
+  }
+  const userPass = isUserExist?.password;
+  const isPasswordMatched = await passwordMatching(payload?.password, userPass);
+  if (!isPasswordMatched) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "the password you have provided is wrong"
+    );
+  }
+  const mealProvider = await MealProvider.findOne({
+    user: isUserExist?._id,
+  }).select("user");
+  if (!mealProvider) {
+    throw new AppError(StatusCodes.NOT_FOUND, "meal provider data not found");
+  }
+  const isKitchenExists = await Kitchen.findOne({ owner: mealProvider?._id });
+  if (!isKitchenExists) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "something went wrong, data not found"
+    );
+  }
+  await Kitchen.findOneAndUpdate(
+    { owner: mealProvider?._id },
+    { isDeleted: true },
+    { new: true }
+  );
+  return null;
+};
+
+const deleteKitchen = async (id: string) => {
+  const isKitchenExists = await Kitchen.findById(id).select("isDeleted");
+  if (!isKitchenExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not foun");
+  }
+  const isKitchenDeleted = isKitchenExists?.isDeleted;
+  if (isKitchenDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not foun");
+  }
+  const result = await Kitchen.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true }
+  );
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to delete the kitchen");
+  }
+  return null;
+};
+
 export const kitchenService = {
   createKitchen,
   getAllKitchen,
   getASingleKitchen,
   updateKitchen,
   getMyKitchen,
+  deleteMyKitchen,
+  deleteKitchen,
 };

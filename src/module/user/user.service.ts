@@ -281,7 +281,19 @@ const changeUserStatus = async ({
   }
 };
 
-const dleteMyAccount = async (id: string) => {
+const dleteMyAccount = async (id: string, payload: { password: string }) => {
+  const isUserExist = await User.findById(id).select("password");
+  if (!isUserExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, "user data not found");
+  }
+  const userPass = isUserExist?.password;
+  const isPasswordMatched = await passwordMatching(payload?.password, userPass);
+  if (!isPasswordMatched) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "the password you have provided is wrong"
+    );
+  }
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
@@ -414,14 +426,14 @@ const deleteAccount = async (id: string, role: string) => {
 
 const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
   const { email, phone, password } = payload;
-
-  const session = await mongoose.startSession();
   if (email && !password) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "You need the password to update the email"
     );
   }
+  const session = await mongoose.startSession();
+
   try {
     session.startTransaction();
     let updatedNumber = null;
@@ -451,6 +463,18 @@ const updatePhoneEmail = async (id: string, payload: Partial<TUSer>) => {
     let updatedEmail = null;
     let otpToken = null;
     if (email) {
+      const isUserExist = await User.findById(id).select("password");
+      if (!isUserExist) {
+        throw new AppError(StatusCodes.NOT_FOUND, "user data not found");
+      }
+      const userPass = isUserExist?.password;
+      const isPasswordMatched = await passwordMatching(password!, userPass);
+      if (!isPasswordMatched) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          "the password you have provided is wrong"
+        );
+      }
       const isEmailExist = await User.findOne({ email: email }).select("email");
       if (isEmailExist) {
         throw new AppError(

@@ -16,7 +16,14 @@ export type TcuisineType =
   | "Italian"
   | "Thai"
   | "American"
-  | "Mediterranean";
+  | "Mediterranean"
+  | "Mexican"
+  | "Turkish"
+  | "Persian"
+  | "Spanish"
+  | "French"
+  | "Japanese"
+  | "Korean";
 
 export type TPortionSize = "Small" | "Medium" | "Large";
 export type TMeal = {

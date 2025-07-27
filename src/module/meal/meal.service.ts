@@ -101,6 +101,14 @@ const getASingleMeal = async (id: string) => {
   return isMealExists;
 };
 
+const getSixMeals = async () => {
+  const result = await Meal.find()
+    .sort({ createdAt: -1 })
+    .limit(6)
+    .select("title cuisineType price imageUrl foodPreference foodCategory");
+  return result;
+};
+
 const updateMeal = async ({
   payload,
   id,
@@ -301,4 +309,5 @@ export const mealService = {
   getASingleMeal,
   updateMeal,
   getMyMeals,
+  getSixMeals,
 };

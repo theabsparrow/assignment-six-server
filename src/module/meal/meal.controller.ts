@@ -34,6 +34,7 @@ const getAllMeals = catchAsync(
     });
   }
 );
+
 const getMyMeals = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const query = req.query;
@@ -62,6 +63,18 @@ const getASingleMeal = catchAsync(
   }
 );
 
+const getSixMeals = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await mealService.getSixMeals();
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "meals are retrived successfully",
+      data: result,
+    });
+  }
+);
+
 const updateMealInfo = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
@@ -84,4 +97,5 @@ export const mealController = {
   getASingleMeal,
   updateMealInfo,
   getMyMeals,
+  getSixMeals,
 };

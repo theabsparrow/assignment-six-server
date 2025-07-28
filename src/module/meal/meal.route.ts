@@ -24,7 +24,7 @@ router.get("/get-meal/:id", mealController.getASingleMeal);
 router.get("/recent-meals", mealController.getSixMeals);
 router.get("/meal-category", mealController.getFoodCategory);
 router.get("/meal-preference", mealController.getFoodPreference);
-router.get("/cuisine-type", mealController.getFoodPreference);
+router.get("/cuisine-type", mealController.getCuisineType);
 router.patch(
   "/update-meal/:id",
   auth(USER_ROLE.mealProvider),

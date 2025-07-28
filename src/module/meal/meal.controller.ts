@@ -75,6 +75,42 @@ const getSixMeals = catchAsync(
   }
 );
 
+const getFoodCategory = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await mealService.getFoodCategory();
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "meals categories are retrived successfully",
+      data: result,
+    });
+  }
+);
+
+const getFoodPreference = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await mealService.getFoodPreference();
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "meals preferences are retrived successfully",
+      data: result,
+    });
+  }
+);
+
+const getCuisineType = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await mealService.getCuisineType();
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "meals cuisines are retrived successfully",
+      data: result,
+    });
+  }
+);
+
 const updateMealInfo = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
@@ -98,4 +134,7 @@ export const mealController = {
   updateMealInfo,
   getMyMeals,
   getSixMeals,
+  getFoodCategory,
+  getFoodPreference,
+  getCuisineType,
 };

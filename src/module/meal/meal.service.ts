@@ -109,6 +109,21 @@ const getSixMeals = async () => {
   return result;
 };
 
+const getFoodCategory = async () => {
+  const result = await Meal.distinct("foodCategory").sort();
+  return result;
+};
+
+const getFoodPreference = async () => {
+  const result = await Meal.distinct("foodPreference").sort();
+  return result;
+};
+
+const getCuisineType = async () => {
+  const result = await Meal.distinct("cuisineType").sort();
+  return result;
+};
+
 const updateMeal = async ({
   payload,
   id,
@@ -310,4 +325,7 @@ export const mealService = {
   updateMeal,
   getMyMeals,
   getSixMeals,
+  getFoodCategory,
+  getFoodPreference,
+  getCuisineType,
 };

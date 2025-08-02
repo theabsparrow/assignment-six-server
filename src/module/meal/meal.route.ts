@@ -5,6 +5,7 @@ import validateRequest from "../../middlewire/validateRequest";
 import { mealValidation } from "./meal.validation";
 import { mealController } from "./meal.controller";
 import { authRefesh } from "../../middlewire/authRefresh";
+import { searchLogController } from "../searchLog/searchLog.controller";
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.get("/recent-meals", mealController.getSixMeals);
 router.get("/meal-category", mealController.getFoodCategory);
 router.get("/meal-preference", mealController.getFoodPreference);
 router.get("/cuisine-type", mealController.getCuisineType);
+router.get("/most-SearchedMeals", searchLogController.getSearchMeals);
 router.patch(
   "/update-meal/:id",
   auth(USER_ROLE.mealProvider),

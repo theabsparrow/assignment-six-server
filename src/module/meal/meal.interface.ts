@@ -47,6 +47,10 @@ export type TMeal = {
   isDeleted: boolean;
 };
 
+export interface TsearchedMeals extends TMeal {
+  _id: Types.ObjectId;
+}
+
 export interface TExtendedMeals extends TMeal {
   addDietaryPreferences: TDietaryPreference[];
   removeDietaryPreferences: TDietaryPreference[];

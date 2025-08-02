@@ -9,6 +9,7 @@ import { Meal } from "./meal.model";
 import QueryBuilder from "../../builder/QueryBuilder";
 import mongoose from "mongoose";
 import { User } from "../user/user.model";
+import { searchLogService } from "../searchLog/searchLogService";
 
 const createMeal = async (user: JwtPayload, payload: TMeal) => {
   const { userId } = user;
@@ -47,7 +48,12 @@ const getAllMeals = async (query: Record<string, unknown>) => {
   const filter: Record<string, unknown> = {};
   filter.isDeleted = false;
   query = { ...query, ...filter };
-
+  const searchTerm = query?.searchTerm;
+  if (searchTerm) {
+    searchLogService
+      .searchLogCreation(searchTerm as string)
+      .catch(console.error);
+  }
   const getAllMealsQuery = new QueryBuilder(
     Meal.find().populate("kitchen owner"),
     query
@@ -62,6 +68,7 @@ const getAllMeals = async (query: Record<string, unknown>) => {
   if (!result) {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
+
   return { meta, result };
 };
 

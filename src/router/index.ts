@@ -9,6 +9,7 @@ import { mealProviderRoute } from "../module/mealProvider/mealProvider.route";
 import { ratingRoute } from "../module/rating/rating.route";
 import { orderRoute } from "../module/order/order.route";
 import { subscriberRouter } from "../module/subscriber/subscriber.route";
+import { blogRouter } from "../module/blog/blog.route";
 
 const router = Router();
 
@@ -52,6 +53,10 @@ const moduleRoutes = [
   {
     path: "/subscriber",
     route: subscriberRouter,
+  },
+  {
+    path: "/blog",
+    route: blogRouter,
   },
 ];
 

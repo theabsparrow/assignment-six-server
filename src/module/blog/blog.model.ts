@@ -1,0 +1,52 @@
+import { model, Schema } from "mongoose";
+import { TBlog } from "./blog.inteface";
+import { blogStatus } from "./blog.const";
+
+const blogSchema = new Schema<TBlog>(
+  {
+    authorId: {
+      type: Schema.Types.ObjectId,
+      required: [true, "user ID is required"],
+      ref: "User",
+    },
+    name: {
+      type: String,
+      required: [true, "name is required"],
+    },
+    title: {
+      type: String,
+      required: [true, "title is required"],
+    },
+    content: {
+      type: String,
+      required: [true, "content is required"],
+    },
+    excerpts: {
+      type: String,
+      required: [true, "excerprts is required"],
+      man: [30, " excerpts can`t be less than 30 charcter"],
+      max: [30, " excerpts can`t be more than 30 charcter"],
+    },
+    coverImage: {
+      type: String,
+      required: [true, "coverImage is required"],
+    },
+    tags: {
+      type: [String],
+    },
+    status: {
+      type: String,
+      enum: blogStatus,
+      default: "published",
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+export const Blog = model<TBlog>("Blog", blogSchema);

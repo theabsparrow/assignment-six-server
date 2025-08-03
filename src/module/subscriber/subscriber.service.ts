@@ -10,7 +10,7 @@ const createSubscriber = async (payload: TSubscriber) => {
   const isExists = await Subscriber.findOne({ email: payload.email }).select(
     "email"
   );
-  if (!isExists) {
+  if (isExists) {
     throw new AppError(
       StatusCodes.CONFLICT,
       "this email is already subscribed"

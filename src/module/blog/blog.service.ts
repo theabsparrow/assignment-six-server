@@ -33,7 +33,7 @@ const createBlog = async (id: string, payload: TBlog) => {
     payload.name = admin?.name;
   }
 
-  payload.excerpts = payload.content.slice(0, 30);
+  payload.excerpts = payload.content.slice(0, 250);
   payload.authorId = new Types.ObjectId(id);
 
   const result = await Blog.create(payload);
@@ -49,7 +49,7 @@ const getAllBlogs = async (query: Record<string, unknown>) => {
   filter.status = "published";
   query = { ...query, ...filter };
   const blogQuery = new QueryBuilder(Blog.find(), query)
-    .search(["title, tags"])
+    .search(["title", "tags"])
     .filter()
     .sort()
     .paginateQuery()
@@ -92,6 +92,9 @@ const updateBlog = async ({
     userId !== isBlogExists?.authorId.toString()
   ) {
     throw new AppError(StatusCodes.UNAUTHORIZED, "you are unauthorized");
+  }
+  if (payload?.content) {
+    payload.excerpts = payload.content.slice(0, 250);
   }
   const { addTags, removeTags, ...remaining } = payload;
   const session = await mongoose.startSession();

@@ -10,7 +10,7 @@ const blogValidationSchema = z.object({
     .trim(),
   content: z
     .string({ required_error: "content is required" })
-    .min(30, { message: "content can`t be less that 30 character" })
+    .min(30, { message: "content can`t be less that 50 character" })
     .max(5000, { message: "content can`t be more than 5000 character" })
     .trim(),
   coverImage: z.string().url("cover image must be a valid url"),
@@ -34,7 +34,7 @@ const updateBlogValidationSchema = z.object({
     .optional(),
   content: z
     .string({ required_error: "content is required" })
-    .min(30, { message: "content can`t be less that 30 character" })
+    .min(30, { message: "content can`t be less that 50 character" })
     .max(5000, { message: "content can`t be more than 5000 character" })
     .trim()
     .optional(),

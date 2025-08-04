@@ -18,13 +18,13 @@ router.get(
   subscriberController.getAllSubscriber
 );
 router.patch(
-  "/change-status",
+  "/change-status/:id",
   validateRequest(subscriberValidation.updateSubscriberValidationschema),
   auth(USER_ROLE.admin, USER_ROLE.superAdmin),
   subscriberController.updateStatus
 );
-router.patch(
-  "/delete-subscriber",
+router.delete(
+  "/delete-subscriber/:id",
   auth(USER_ROLE.admin, USER_ROLE.superAdmin),
   subscriberController.deleteSubscriber
 );

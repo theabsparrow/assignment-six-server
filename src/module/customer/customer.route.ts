@@ -20,7 +20,7 @@ router.get(
 );
 router.patch(
   "/update-info",
-  auth(USER_ROLE.customer),
+  auth(USER_ROLE.customer, USER_ROLE.admin),
   validateRequest(customerValidation.updateCustomerInfoValidationSchema),
   customerController.updateCustomerInfo
 );

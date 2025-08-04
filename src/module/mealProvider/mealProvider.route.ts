@@ -19,7 +19,7 @@ router.get(
 );
 router.patch(
   "/updateInfo",
-  auth(USER_ROLE.mealProvider),
+  auth(USER_ROLE.mealProvider, USER_ROLE.admin),
   validateRequest(mealProviderValidation.updateMealProviderValidationSchema),
   mealProviderController.updateData
 );

@@ -46,7 +46,12 @@ router.patch(
   validateRequest(kitchenValidation.updateKitchenValidationSchema),
   kitchenController.updateKitchenInfo
 );
-
+router.patch(
+  "/update-status/:id",
+  auth(USER_ROLE.admin, USER_ROLE.superAdmin),
+  validateRequest(kitchenValidation.updateStatusValidationSchema),
+  kitchenController.updateStatus
+);
 router.delete(
   "/delete-myKitchen",
   auth(USER_ROLE.mealProvider),

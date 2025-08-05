@@ -55,7 +55,7 @@ const getAllMeals = async (query: Record<string, unknown>) => {
       .catch(console.error);
   }
   const getAllMealsQuery = new QueryBuilder(
-    Meal.find().populate("kitchen owner"),
+    Meal.find().populate("kitchen"),
     query
   )
     .search(["title"])
@@ -69,6 +69,40 @@ const getAllMeals = async (query: Record<string, unknown>) => {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
 
+  return { meta, result };
+};
+
+const getAllMealList = async (query: Record<string, unknown>) => {
+  const filter: Record<string, unknown> = {};
+  filter.isDeleted = false;
+  if (query?.isAvailable && typeof query?.isAvailable === "string") {
+    if (query?.isAvailable === "true") {
+      filter.isAvailable = true;
+    } else if (query?.isAvailable === "false") {
+      filter.isAvailable = false;
+    }
+  }
+  query = {
+    ...query,
+    fields:
+      "kitchen,title,foodCategory, cuisineType, foodPreference, portionSize, price, isAvailable, createdAt",
+    ...filter,
+  };
+
+  const getAllMealsQuery = new QueryBuilder(
+    Meal.find().populate("kitchen"),
+    query
+  )
+    .search(["title"])
+    .filter()
+    .sort()
+    .paginateQuery()
+    .fields();
+  const result = await getAllMealsQuery.modelQuery;
+  const meta = await getAllMealsQuery.countTotal();
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
   return { meta, result };
 };
 
@@ -103,6 +137,9 @@ const getMyMeals = async (query: Record<string, unknown>, id: string) => {
 const getASingleMeal = async (id: string) => {
   const isMealExists = await Meal.findById(id).populate("kitchen owner");
   if (!isMealExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  if (isMealExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
   return isMealExists;
@@ -325,6 +362,25 @@ const updateMeal = async ({
     throw new AppError(StatusCodes.BAD_REQUEST, err);
   }
 };
+
+const deleteMeal = async (id: string) => {
+  const isMealExists = await Meal.findById(id).populate("kitchen owner");
+  if (!isMealExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  if (isMealExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  const result = await Meal.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true }
+  );
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to delete data");
+  }
+  return null;
+};
 export const mealService = {
   createMeal,
   getAllMeals,
@@ -335,4 +391,6 @@ export const mealService = {
   getFoodCategory,
   getFoodPreference,
   getCuisineType,
+  getAllMealList,
+  deleteMeal,
 };

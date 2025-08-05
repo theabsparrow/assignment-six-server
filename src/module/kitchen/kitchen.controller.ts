@@ -106,6 +106,20 @@ const deleteKitche = catchAsync(
   }
 );
 
+const updateStatus = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const payload = req.body;
+    const id = req.params.id;
+    const result = await kitchenService.updateStatus(id, payload);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "kitchen status is updated successfully",
+      data: result,
+    });
+  }
+);
+
 export const kitchenController = {
   createKitchen,
   getAllKitchen,
@@ -114,4 +128,5 @@ export const kitchenController = {
   getMyKitchen,
   deleteMyKitchen,
   deleteKitche,
+  updateStatus,
 };

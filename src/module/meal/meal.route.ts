@@ -17,6 +17,11 @@ router.post(
 );
 router.get("/get-allMeals", mealController.getAllMeals);
 router.get(
+  "/all-mealList",
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  mealController.getAllMealList
+);
+router.get(
   "/get-myMeals",
   authRefesh(USER_ROLE.mealProvider),
   mealController.getMyMeals
@@ -32,5 +37,10 @@ router.patch(
   auth(USER_ROLE.mealProvider),
   validateRequest(mealValidation.updateMealValidationSchema),
   mealController.updateMealInfo
+);
+router.delete(
+  "/delete-meal/:id",
+  auth(USER_ROLE.superAdmin, USER_ROLE.admin),
+  mealController.deleteMeal
 );
 export const mealRoute = router;

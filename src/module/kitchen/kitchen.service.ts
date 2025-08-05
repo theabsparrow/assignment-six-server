@@ -79,18 +79,28 @@ const getAllKitchen = async (
   query: Record<string, unknown>
 ) => {
   const { userRole } = user;
-
   const filter: Record<string, unknown> = {};
-  if (
-    userRole === USER_ROLE.customer ||
-    userRole === USER_ROLE["mealProvider"]
-  ) {
-    filter.isDeleted = false;
+  filter.isDeleted = false;
+  if (query?.isActive && typeof query?.isActive === "string") {
+    if (query?.isActive === "true") {
+      filter.isActive = true;
+    } else if (query?.isActive === "false") {
+      filter.isActive = false;
+    }
+  }
+  if (query?.hygieneCertified && typeof query?.hygieneCertified === "string") {
+    if (query?.hygieneCertified === "true") {
+      filter.hygieneCertified = true;
+    } else if (query?.isActive === "false") {
+      filter.hygieneCertified = false;
+    }
+  }
+  if (userRole === USER_ROLE.customer || userRole === USER_ROLE.mealProvider) {
     filter.isActive = true;
   }
   query = { ...query, ...filter };
   const kitchenQuery = new QueryBuilder(Kitchen.find().populate("owner"), query)
-    .search(["licenseOrCertificate", "kitchenName"])
+    .search(["kitchenName", "location"])
     .filter()
     .sort()
     .paginateQuery()
@@ -407,6 +417,27 @@ const deleteKitchen = async (id: string) => {
   }
 };
 
+const updateStatus = async (id: string, payload: { isActive: boolean }) => {
+  const isKitchenExists = await Kitchen.findById(id).select("isDeleted");
+  if (!isKitchenExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not foun");
+  }
+  const isKitchenDeleted = isKitchenExists?.isDeleted;
+  if (isKitchenDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not foun");
+  }
+  const result = await Kitchen.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
+  });
+  if (!result) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "faild to update kitchen status"
+    );
+  }
+};
+
 export const kitchenService = {
   createKitchen,
   getAllKitchen,
@@ -415,4 +446,5 @@ export const kitchenService = {
   getMyKitchen,
   deleteMyKitchen,
   deleteKitchen,
+  updateStatus,
 };

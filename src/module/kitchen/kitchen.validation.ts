@@ -71,7 +71,14 @@ const updateKitchenValidationSchema = z.object({
   removeSpecialEquipments: z.array(z.string()).optional(),
 });
 
+const updateStatusValidationSchema = z.object({
+  isActive: z.boolean({
+    required_error: "status is required",
+  }),
+});
+
 export const kitchenValidation = {
   kitchenValidationSchema,
   updateKitchenValidationSchema,
+  updateStatusValidationSchema,
 };

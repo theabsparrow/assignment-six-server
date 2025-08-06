@@ -2,7 +2,7 @@
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../error/AppError";
 import { TCustomer } from "../customer/customer.interface";
-import { TStatus, TUSer, TUSerRole } from "./user.interface";
+import { TQuery, TStatus, TUSer, TUSerRole } from "./user.interface";
 import { User } from "./user.model";
 import { calculateAge, capitalizeFirstWord } from "./user.utills";
 import mongoose from "mongoose";
@@ -227,13 +227,136 @@ const getMeroute = async (userId: string, userRole: string) => {
   return result;
 };
 
-// const getUserInfo = async (userId: string) => {
-//   const result = await User.findById(userId);
-//   if (!result) {
-//     throw new AppError(StatusCodes.NOT_FOUND, "data not available");
-//   }
-//   return result;
-// };
+const getAllUsersWithProfile = async (query: TQuery) => {
+  const {
+    searchTerm = "",
+    sortBy = "createdAt",
+    sortOrder = "asc",
+    role,
+    status,
+    verifiedWithEmail,
+    gender,
+    hasKitchen,
+    page = 1,
+    limit = 10,
+  } = query;
+
+  const matchConditions: Record<string, any> = {
+    isDeleted: false,
+  };
+
+  if (role) matchConditions.role = role;
+  if (status) matchConditions.status = status;
+  if (verifiedWithEmail !== undefined) {
+    matchConditions.verifiedWithEmail = verifiedWithEmail === "true";
+  }
+
+  const searchConditions =
+    searchTerm.trim() !== ""
+      ? {
+          $or: [
+            { email: { $regex: searchTerm, $options: "i" } },
+            { phone: { $regex: searchTerm, $options: "i" } },
+            { "profile.name": { $regex: searchTerm, $options: "i" } },
+            { "profile.address": { $regex: searchTerm, $options: "i" } },
+          ],
+        }
+      : {};
+  const sortFieldMap: Record<string, string> = {
+    name: "profile.name",
+    status: "status",
+    verifiedWithEmail: "verifiedWithEmail",
+  };
+
+  const sortCondition: Record<string, number> = {
+    [sortFieldMap[sortBy]]: sortOrder === "asc" ? 1 : -1,
+  };
+  const parsedPage = Number(page);
+  const parsedLimit = Number(limit);
+  const skip = (parsedPage - 1) * parsedLimit;
+
+  try {
+    const result = await User.aggregate([
+      { $match: { role: { $ne: "superAdmin" }, ...matchConditions } },
+      {
+        $lookup: {
+          from: "customers",
+          localField: "_id",
+          foreignField: "user",
+          as: "customerInfo",
+        },
+      },
+      {
+        $lookup: {
+          from: "mealproviders",
+          localField: "_id",
+          foreignField: "user",
+          as: "mealProviderInfo",
+        },
+      },
+      {
+        $addFields: {
+          profile: {
+            $switch: {
+              branches: [
+                {
+                  case: { $in: ["$role", ["customer", "admin"]] },
+                  then: { $arrayElemAt: ["$customerInfo", 0] },
+                },
+                {
+                  case: { $eq: ["$role", "mealProvider"] },
+                  then: { $arrayElemAt: ["$mealProviderInfo", 0] },
+                },
+              ],
+              default: null,
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          ...(gender && { "profile.gender": gender }),
+          ...(hasKitchen !== undefined
+            ? { "profile.hasKitchen": hasKitchen === "true" }
+            : {}),
+          ...searchConditions,
+        },
+      },
+      {
+        $project: {
+          password: 0,
+          passwordChangedAt: 0,
+          isDeleted: 0,
+          customerInfo: 0,
+          mealProviderInfo: 0,
+        },
+      },
+      {
+        $sort: sortCondition as { [key: string]: 1 | -1 },
+      },
+      { $skip: skip },
+      { $limit: parsedLimit },
+    ]);
+    if (!result) {
+      throw new AppError(StatusCodes.NOT_FOUND, "No user data found");
+    }
+    const total = await User.countDocuments({
+      ...matchConditions,
+      ...searchConditions,
+    });
+    const meta = {
+      page,
+      limit,
+      total,
+    };
+    return {
+      meta,
+      result,
+    };
+  } catch (err: any) {
+    throw new AppError(StatusCodes.NOT_FOUND, err);
+  }
+};
 
 const changeUserStatus = async ({
   status,
@@ -260,25 +383,15 @@ const changeUserStatus = async ({
       "you can`t change an admin status"
     );
   }
-  const session = await mongoose.startSession();
-  try {
-    session.startTransaction();
-    const result = await User.findByIdAndUpdate(
-      userId,
-      { status: status },
-      { new: true, session, runValidators: true }
-    );
-    if (!result) {
-      throw new AppError(StatusCodes.BAD_REQUEST, "faild to change status");
-    }
-    await session.commitTransaction();
-    await session.endSession();
-    return result;
-  } catch (err: any) {
-    await session.abortTransaction();
-    await session.endSession();
-    throw new AppError(StatusCodes.BAD_REQUEST, err);
+  const result = await User.findByIdAndUpdate(
+    userId,
+    { status: status },
+    { new: true, runValidators: true }
+  );
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to change status");
   }
+  return result;
 };
 
 const dleteMyAccount = async (id: string, payload: { password: string }) => {
@@ -562,5 +675,5 @@ export const userService = {
   deleteAccount,
   updatePhoneEmail,
   verifyEmail,
-  // getUserInfo,
+  getAllUsersWithProfile,
 };

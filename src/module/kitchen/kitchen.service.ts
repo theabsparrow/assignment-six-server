@@ -98,7 +98,12 @@ const getAllKitchen = async (
   if (userRole === USER_ROLE.customer || userRole === USER_ROLE.mealProvider) {
     filter.isActive = true;
   }
-  query = { ...query, ...filter };
+  query = {
+    ...query,
+    fields:
+      "kitchenName,owner,location, isActive, kitchenType, hygieneCertified, kitchenPhoto, createdAt",
+    ...filter,
+  };
   const kitchenQuery = new QueryBuilder(Kitchen.find().populate("owner"), query)
     .search(["kitchenName", "location"])
     .filter()

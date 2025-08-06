@@ -52,19 +52,18 @@ const getMeRoute = catchAsync(
   }
 );
 
-// const getUserInfo = catchAsync(
-//   async (req: Request, res: Response, next: NextFunction) => {
-//     const payload = req.user as JwtPayload;
-//     const { userId } = payload;
-//     const result = await userService.getUserInfo(userId);
-//     sendResponse(res, {
-//       success: true,
-//       statusCode: StatusCodes.OK,
-//       message: "user info is retirved successfully",
-//       data: result,
-//     });
-//   }
-// );
+const getAllUsersWithProfile = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query = req.query;
+    const result = await userService.getAllUsersWithProfile(query);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "users info is retirved successfully",
+      data: result,
+    });
+  }
+);
 
 const changeUserStatus = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -156,5 +155,5 @@ export const userController = {
   updatePhoneEmail,
   verifyEmail,
   changeUserStatus,
-  // getUserInfo,
+  getAllUsersWithProfile,
 };

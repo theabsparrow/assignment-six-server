@@ -31,16 +31,11 @@ router.get(
   ),
   userController.getMeRoute
 );
-// router.get(
-//   "/my-info",
-//   authRefesh(
-//     USER_ROLE.admin,
-//     USER_ROLE.customer,
-//     USER_ROLE.mealProvider,
-//     USER_ROLE.superAdmin
-//   ),
-//   userController.getUserInfo
-// );
+router.get(
+  "/get-allUsers",
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  userController.getAllUsersWithProfile
+);
 router.patch(
   "/change-status/:id",
   auth(USER_ROLE.admin, USER_ROLE.superAdmin),

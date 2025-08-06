@@ -62,6 +62,28 @@ const getAllBlogs = async (query: Record<string, unknown>) => {
   return { meta, result };
 };
 
+const getAllBlogsList = async (query: Record<string, unknown>) => {
+  const filter: Record<string, unknown> = {};
+  filter.isDeleted = false;
+  query = {
+    ...query,
+    fields: "authorId, name, title, status, createdAt",
+    ...filter,
+  };
+  const blogQuery = new QueryBuilder(Blog.find().populate("authorId"), query)
+    .search(["title", "name"])
+    .filter()
+    .sort()
+    .paginateQuery()
+    .fields();
+  const result = await blogQuery.modelQuery;
+  const meta = await blogQuery.countTotal();
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  return { meta, result };
+};
+
 const getASingleBlog = async (id: string) => {
   const isBlogExists = await Blog.findById(id);
   if (!isBlogExists) {
@@ -85,6 +107,9 @@ const updateBlog = async ({
   const { userId, userRole } = user;
   const isBlogExists = await Blog.findById(id);
   if (!isBlogExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "blog not found");
+  }
+  if (isBlogExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "blog not found");
   }
   if (
@@ -145,6 +170,9 @@ const deleteBlog = async (id: string, user: JwtPayload) => {
   if (!isBlogExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "blog not found");
   }
+  if (isBlogExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "blog not found");
+  }
   if (
     userRole === USER_ROLE.mealProvider &&
     userId !== isBlogExists?.authorId.toString()
@@ -168,4 +196,5 @@ export const blogService = {
   getASingleBlog,
   updateBlog,
   deleteBlog,
+  getAllBlogsList,
 };

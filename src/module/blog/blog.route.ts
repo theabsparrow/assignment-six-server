@@ -4,6 +4,7 @@ import { blogvalidation } from "./blog.validation";
 import { auth } from "../../middlewire/auth";
 import { USER_ROLE } from "../user/user.const";
 import { blogController } from "./blog.controller";
+import { authRefesh } from "../../middlewire/authRefresh";
 
 const router = Router();
 
@@ -14,6 +15,11 @@ router.post(
   blogController.createBlog
 );
 router.get("/blogs", blogController.getAllBlogs);
+router.get(
+  "/all-blogs",
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  blogController.getAllBlogsList
+);
 router.get("/blog/:id", blogController.getASingleBlog);
 router.patch(
   "/blog/:id",

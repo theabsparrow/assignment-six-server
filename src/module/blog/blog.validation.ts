@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { blogStatus } from "./blog.const";
 
 const blogValidationSchema = z.object({
   title: z
@@ -39,6 +40,7 @@ const updateBlogValidationSchema = z.object({
     .trim()
     .optional(),
   coverImage: z.string().url("cover image must be a valid url").optional(),
+  status: z.enum([...blogStatus] as [string, ...string[]]).optional(),
   addTags: z
     .array(
       z

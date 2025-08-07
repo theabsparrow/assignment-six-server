@@ -10,6 +10,7 @@ import { ratingRoute } from "../module/rating/rating.route";
 import { orderRoute } from "../module/order/order.route";
 import { subscriberRouter } from "../module/subscriber/subscriber.route";
 import { blogRouter } from "../module/blog/blog.route";
+import { statsRouter } from "../module/statistics/statistic.route";
 
 const router = Router();
 
@@ -57,6 +58,10 @@ const moduleRoutes = [
   {
     path: "/blog",
     route: blogRouter,
+  },
+  {
+    path: "/statistics",
+    route: statsRouter,
   },
 ];
 

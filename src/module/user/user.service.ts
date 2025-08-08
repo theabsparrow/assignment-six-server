@@ -231,7 +231,7 @@ const getAllUsersWithProfile = async (query: TQuery) => {
   const {
     searchTerm = "",
     sortBy = "createdAt",
-    sortOrder = "asc",
+    sortOrder = "desc",
     role,
     status,
     verifiedWithEmail,
@@ -266,10 +266,11 @@ const getAllUsersWithProfile = async (query: TQuery) => {
     name: "profile.name",
     status: "status",
     verifiedWithEmail: "verifiedWithEmail",
+    createdAt: "createdAt",
   };
 
   const sortCondition: Record<string, number> = {
-    [sortFieldMap[sortBy]]: sortOrder === "asc" ? 1 : -1,
+    [sortFieldMap[sortBy] || sortBy]: sortOrder === "asc" ? 1 : -1,
   };
   const parsedPage = Number(page);
   const parsedLimit = Number(limit);

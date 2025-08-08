@@ -4,9 +4,11 @@ import { subWeeks } from "date-fns";
 import { mergeWeeksWithMongoData } from "./statistic.utills";
 import { Subscriber } from "../subscriber/subscriber.model";
 import { Kitchen } from "../kitchen/kitchen.model";
+import { Meal } from "../meal/meal.model";
+import { Blog } from "../blog/blog.model";
 
 const getUsersStats = async () => {
-  const totalUsers = await User.countDocuments();
+  const totalUsers = await User.countDocuments({ isDeleted: false });
   const [totalAdmins, totalCustomers, totalMealProviders] = await Promise.all([
     User.countDocuments({ role: "admin" }),
     User.countDocuments({ role: "customer" }),
@@ -30,6 +32,7 @@ const getUsersStats = async () => {
     {
       $match: {
         createdAt: { $gte: fourWeeksAgo },
+        isDeleted: false,
       },
     },
     {
@@ -67,7 +70,7 @@ const getUsersStats = async () => {
 };
 
 const getSubsCribersStats = async () => {
-  const totalSubscriber = await Subscriber.countDocuments();
+  const totalSubscriber = await Subscriber.countDocuments({ isDeleted: false });
   const [totalActive, totalBlocked] = await Promise.all([
     Subscriber.countDocuments({ status: "active" }),
     Subscriber.countDocuments({ status: "blocked" }),
@@ -77,6 +80,7 @@ const getSubsCribersStats = async () => {
     {
       $match: {
         createdAt: { $gte: fourWeeksAgo },
+        isDeleted: false,
       },
     },
     {
@@ -101,23 +105,19 @@ const getSubsCribersStats = async () => {
 };
 
 const getKitchenStats = async () => {
-  const totalKitchen = await Kitchen.countDocuments();
-
+  const totalKitchen = await Kitchen.countDocuments({ isDeleted: false });
   const [homeKitchen, commercialKitchen] = await Promise.all([
     Kitchen.countDocuments({ kitchenType: "Home-based" }),
     Kitchen.countDocuments({ kitchenType: "Commercial" }),
   ]);
-
   const [hygiene, notHygiene] = await Promise.all([
     Kitchen.countDocuments({ hygieneCertified: true }),
     Kitchen.countDocuments({ hygieneCertified: false }),
   ]);
-
   const [active, notActive] = await Promise.all([
     Kitchen.countDocuments({ isActive: true }),
     Kitchen.countDocuments({ isActive: false }),
   ]);
-
   return {
     totals: {
       totalKitchen,
@@ -134,8 +134,178 @@ const getKitchenStats = async () => {
     },
   };
 };
+
+const getMealStats = async () => {
+  const totalMeal = await Meal.countDocuments({ isDeleted: false });
+  const [breakFastMeal, lunchMeal, dinnerMeal, snackMeal] = await Promise.all([
+    Meal.countDocuments({ foodCategory: "Breakfast" }),
+    Meal.countDocuments({ foodCategory: "Lunch" }),
+    Meal.countDocuments({ foodCategory: "Dinner" }),
+    Meal.countDocuments({ foodCategory: "Snack" }),
+  ]);
+  const [
+    Bengali,
+    IndianMeal,
+    ChineseMeal,
+    ContinentalMeal,
+    ItalianMeal,
+    ThaiMeal,
+    AmericanMeal,
+    MediterraneanMeal,
+    MexicanMeal,
+    TurkishMeal,
+    PersianMeal,
+    SpanishMeal,
+    FrenchMeal,
+    JapaneseMeal,
+    KoreanMeal,
+  ] = await Promise.all([
+    Meal.countDocuments({ cuisineType: "Bengali" }),
+    Meal.countDocuments({ cuisineType: "Indian" }),
+    Meal.countDocuments({ cuisineType: "Chinese" }),
+    Meal.countDocuments({ cuisineType: "Continental" }),
+    Meal.countDocuments({ cuisineType: "Italian" }),
+    Meal.countDocuments({ cuisineType: "Thai" }),
+    Meal.countDocuments({ cuisineType: "American" }),
+    Meal.countDocuments({ cuisineType: "Mediterranean" }),
+    Meal.countDocuments({ cuisineType: "Mexican" }),
+    Meal.countDocuments({ cuisineType: "Turkish" }),
+    Meal.countDocuments({ cuisineType: "Persian" }),
+    Meal.countDocuments({ cuisineType: "Spanish" }),
+    Meal.countDocuments({ cuisineType: "French" }),
+    Meal.countDocuments({ cuisineType: "Japanese" }),
+    Meal.countDocuments({ cuisineType: "Korean" }),
+  ]);
+  const [mixedFood, vegFood, nonVegFood] = await Promise.all([
+    Meal.countDocuments({ foodPreference: "Mixed" }),
+    Meal.countDocuments({ foodPreference: "Veg" }),
+    Meal.countDocuments({ foodPreference: "Non-Veg" }),
+  ]);
+  const [smallSize, mediumSize, largeSize] = await Promise.all([
+    Meal.countDocuments({ portionSize: "Small" }),
+    Meal.countDocuments({ portionSize: "Medium" }),
+    Meal.countDocuments({ portionSize: "Large" }),
+  ]);
+
+  const [available, notAvailable] = await Promise.all([
+    Meal.countDocuments({ isAvailable: true }),
+    Meal.countDocuments({ isAvailable: false }),
+  ]);
+  const [highestPriceMeal, lowestPriceMeal] = await Promise.all([
+    Meal.findOne().sort({ price: -1 }).select("price title -_id"),
+    Meal.findOne().sort({ price: 1 }).select("price title -_id"),
+  ]);
+  const fourWeeksAgo = subWeeks(new Date(), 3);
+  const newMealLast4Weeks = await Meal.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: fourWeeksAgo },
+        isDeleted: false,
+      },
+    },
+    {
+      $group: {
+        _id: { $isoWeek: "$createdAt" },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { _id: 1 },
+    },
+  ]);
+  const finalResult = mergeWeeksWithMongoData(newMealLast4Weeks);
+  return {
+    total: totalMeal,
+    cuisine: {
+      Bengali,
+      IndianMeal,
+      ChineseMeal,
+      ContinentalMeal,
+      ItalianMeal,
+      ThaiMeal,
+      AmericanMeal,
+      MediterraneanMeal,
+      MexicanMeal,
+      TurkishMeal,
+      PersianMeal,
+      SpanishMeal,
+      FrenchMeal,
+      JapaneseMeal,
+      KoreanMeal,
+    },
+    category: {
+      breakFastMeal,
+      lunchMeal,
+      dinnerMeal,
+      snackMeal,
+    },
+    preference: {
+      mixedFood,
+      vegFood,
+      nonVegFood,
+    },
+    size: {
+      smallSize,
+      mediumSize,
+      largeSize,
+    },
+    status: {
+      available,
+      notAvailable,
+    },
+    price: {
+      highestPriceMeal,
+      lowestPriceMeal,
+    },
+    newMealsByWeek: finalResult,
+  };
+};
+
+const getAllBlogs = async () => {
+  const totalBlog = await Blog.countDocuments({ isDeleted: false });
+  const [publishedBlog, archivedBlog, topViewedBlogs] = await Promise.all([
+    Blog.countDocuments({ status: "published" }),
+    Blog.countDocuments({ status: "archived" }),
+    Blog.find({ isDeleted: false })
+      .sort({ view: -1 })
+      .limit(5)
+      .select("title view -_id")
+      .lean(),
+  ]);
+  const fourWeeksAgo = subWeeks(new Date(), 3);
+  const newBlogLast4Weeks = await Blog.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: fourWeeksAgo },
+        isDeleted: false,
+      },
+    },
+    {
+      $group: {
+        _id: { $isoWeek: "$createdAt" },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { _id: 1 },
+    },
+  ]);
+  const finalResult = mergeWeeksWithMongoData(newBlogLast4Weeks);
+  return {
+    total: totalBlog,
+    status: {
+      publishedBlog,
+      archivedBlog,
+    },
+    topBlogs: topViewedBlogs,
+    newBlogsByWeek: finalResult,
+  };
+};
+
 export const statisticService = {
   getUsersStats,
   getSubsCribersStats,
   getKitchenStats,
+  getMealStats,
+  getAllBlogs,
 };

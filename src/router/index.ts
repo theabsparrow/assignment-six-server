@@ -11,6 +11,7 @@ import { orderRoute } from "../module/order/order.route";
 import { subscriberRouter } from "../module/subscriber/subscriber.route";
 import { blogRouter } from "../module/blog/blog.route";
 import { statsRouter } from "../module/statistics/statistic.route";
+import { kitchenSubscriberRouter } from "../module/kitchenSubscriber/kitchenSubscriber.route";
 
 const router = Router();
 
@@ -62,6 +63,10 @@ const moduleRoutes = [
   {
     path: "/statistics",
     route: statsRouter,
+  },
+  {
+    path: "/kitchenSubscribe",
+    route: kitchenSubscriberRouter,
   },
 ];
 

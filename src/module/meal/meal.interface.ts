@@ -39,7 +39,8 @@ export type TMeal = {
   allergies: TAlergies[];
   portionSize: TPortionSize;
   price: number;
-  rating?: number;
+  avarageRating?: number;
+  ratingCount: number;
   imageUrl: string;
   availableDays: TCookingDay[];
   availableTime: TMealTime[];

@@ -63,7 +63,11 @@ const MealSchema = new Schema<TMeal>(
       type: Number,
       required: [true, "Price is required"],
     },
-    rating: {
+    avarageRating: {
+      type: Number,
+      default: 0,
+    },
+    ratingCount: {
       type: Number,
       default: 0,
     },

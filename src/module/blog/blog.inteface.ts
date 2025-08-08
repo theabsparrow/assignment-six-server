@@ -10,6 +10,7 @@ export type TBlog = {
   coverImage: string;
   tags: string[];
   status: BlogStatus;
+  view: number;
   isDeleted: boolean;
 };
 

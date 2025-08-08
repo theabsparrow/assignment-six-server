@@ -20,5 +20,15 @@ router.get(
   authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
   statsController.getKitchensStats
 );
+router.get(
+  "/meal-stats",
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  statsController.getMealStats
+);
+router.get(
+  "/blog-stats",
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  statsController.getBlogStats
+);
 
 export const statsRouter = router;

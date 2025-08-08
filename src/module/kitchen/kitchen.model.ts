@@ -60,6 +60,10 @@ const KitchenSchema = new Schema<TKitchen>(
       type: [String],
       default: [],
     },
+    subscriber: {
+      type: Number,
+      default: 0,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

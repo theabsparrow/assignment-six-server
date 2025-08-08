@@ -19,6 +19,12 @@ const RatingSchema = new Schema<TRating>(
       min: [1, "Rating must be at least 1"],
       max: [5, "Rating must be at most 5"],
     },
+    feedback: {
+      type: String,
+      required: [true, "feedback is required"],
+      min: [10, "feedback must be 10 character"],
+      max: [350, "feedback can`t be more that 350 charcter"],
+    },
   },
   {
     timestamps: true,

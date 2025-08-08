@@ -67,7 +67,7 @@ const getAllBlogsList = async (query: Record<string, unknown>) => {
   filter.isDeleted = false;
   query = {
     ...query,
-    fields: "authorId, name, title, status, createdAt",
+    fields: "authorId, name, title, status, createdAt, view",
     ...filter,
   };
   const blogQuery = new QueryBuilder(Blog.find().populate("authorId"), query)
@@ -92,7 +92,20 @@ const getASingleBlog = async (id: string) => {
   if (isBlogExists.isDeleted) {
     throw new AppError(StatusCodes.BAD_REQUEST, "blog not found");
   }
-  return isBlogExists;
+  const blog = await Blog.findOneAndUpdate(
+    { _id: isBlogExists?._id },
+    { $inc: { view: 1 } },
+    { new: true }
+  );
+
+  if (!blog) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "blog not found");
+  }
+  const result = await Blog.findById(blog?._id);
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "blog not found");
+  }
+  return result;
 };
 
 const updateBlog = async ({

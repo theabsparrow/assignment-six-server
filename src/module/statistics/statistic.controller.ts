@@ -43,8 +43,34 @@ const getKitchensStats = catchAsync(
   }
 );
 
+const getMealStats = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await statisticService.getMealStats();
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "meal stats are retrived successfully",
+      data: result,
+    });
+  }
+);
+
+const getBlogStats = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await statisticService.getAllBlogs();
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Blog stats are retrived successfully",
+      data: result,
+    });
+  }
+);
+
 export const statsController = {
   getUsersStats,
   getSubsCribersStats,
   getKitchensStats,
+  getMealStats,
+  getBlogStats,
 };

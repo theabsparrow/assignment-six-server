@@ -39,6 +39,10 @@ const blogSchema = new Schema<TBlog>(
       enum: blogStatus,
       default: "published",
     },
+    view: {
+      type: Number,
+      default: 0,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

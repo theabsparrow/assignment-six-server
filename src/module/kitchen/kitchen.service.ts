@@ -101,7 +101,7 @@ const getAllKitchen = async (
   query = {
     ...query,
     fields:
-      "kitchenName,owner,location, isActive, kitchenType, hygieneCertified, kitchenPhoto, createdAt",
+      "kitchenName,owner,location, isActive, kitchenType, hygieneCertified, kitchenPhoto, createdAt, subscriber",
     ...filter,
   };
   const kitchenQuery = new QueryBuilder(Kitchen.find().populate("owner"), query)

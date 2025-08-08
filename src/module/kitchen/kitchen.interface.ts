@@ -25,6 +25,7 @@ export type TKitchen = {
   mealTimePerDay: TMealTime[];
   cookingDays: TCookingDay[];
   specialEquipments?: string[];
+  subscriber: number;
   isDeleted: boolean;
   isActive: boolean;
 };

@@ -359,16 +359,25 @@ const getAllUsersWithProfile = async (query: TQuery) => {
 };
 
 const getUserProfile = async (id: string) => {
-  const isUserExists = await User.findById(id).select("role isDeleted");
-  if (!isUserExists) {
-    throw new AppError(StatusCodes.NOT_FOUND, "user data is not available");
-  }
-  if (isUserExists?.isDeleted) {
-    throw new AppError(StatusCodes.NOT_FOUND, "user data is not available");
-  }
-  const role = isUserExists?.role;
-  const userId = isUserExists?._id;
+  let userId: string | null = null;
+  let role: TUSerRole | null = null;
   let result;
+  const isUser = await User.findById(id).select("role isDeleted");
+
+  if (isUser) {
+    if (isUser.isDeleted) {
+      throw new AppError(StatusCodes.NOT_FOUND, "user data is not available");
+    }
+    userId = isUser._id.toString();
+    role = isUser?.role;
+  } else {
+    result = await MealProvider.findById(id, {
+      isDeleted: 0,
+      createdAt: 0,
+      updatedAt: 0,
+    }).populate({ path: "user", select: "-isDeleted -updatedAt" });
+  }
+
   if (role === "mealProvider") {
     result = await MealProvider.findOne(
       { user: userId },

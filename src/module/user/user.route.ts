@@ -36,6 +36,11 @@ router.get(
   authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
   userController.getAllUsersWithProfile
 );
+router.get(
+  "/user-profile/:id",
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  userController.getUSerProfile
+);
 router.patch(
   "/change-status/:id",
   auth(USER_ROLE.admin, USER_ROLE.superAdmin),

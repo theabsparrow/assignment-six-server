@@ -59,7 +59,20 @@ const getAllUsersWithProfile = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: "users info is retirved successfully",
+      message: "users info are retirved successfully",
+      data: result,
+    });
+  }
+);
+
+const getUSerProfile = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const result = await userService.getUserProfile(id);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "user info is retirved successfully",
       data: result,
     });
   }
@@ -156,4 +169,5 @@ export const userController = {
   verifyEmail,
   changeUserStatus,
   getAllUsersWithProfile,
+  getUSerProfile,
 };

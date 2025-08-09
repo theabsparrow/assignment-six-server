@@ -30,7 +30,12 @@ router.get(
   kitchenController.getMyKitchen
 );
 router.get(
-  "/:id",
+  "/kitchen-profile/:id",
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  kitchenController.getKitchenProfile
+);
+router.get(
+  "/single-kitchen/:id",
   authRefesh(
     USER_ROLE.admin,
     USER_ROLE.customer,
@@ -39,7 +44,6 @@ router.get(
   ),
   kitchenController.getASingleKitchen
 );
-
 router.patch(
   "/update-kitchen",
   auth(USER_ROLE.mealProvider),

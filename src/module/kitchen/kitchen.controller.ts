@@ -64,6 +64,19 @@ const getMyKitchen = catchAsync(
   }
 );
 
+const getKitchenProfile = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const result = await kitchenService.getKitchenProfile(id);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "kitchen information is retrived successfully",
+      data: result,
+    });
+  }
+);
+
 const updateKitchenInfo = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const payload = req.body;
@@ -129,4 +142,5 @@ export const kitchenController = {
   deleteMyKitchen,
   deleteKitche,
   updateStatus,
+  getKitchenProfile,
 };

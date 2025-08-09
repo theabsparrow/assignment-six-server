@@ -11,7 +11,6 @@ import {
   createToken,
   generateOTP,
   passwordMatching,
-  verifyUser,
 } from "../auth/auth.utills";
 import config from "../../config";
 import { USER_ROLE } from "./user.const";
@@ -359,6 +358,35 @@ const getAllUsersWithProfile = async (query: TQuery) => {
   }
 };
 
+const getUserProfile = async (id: string) => {
+  const isUserExists = await User.findById(id).select("role isDeleted");
+  if (!isUserExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "user data is not available");
+  }
+  if (isUserExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "user data is not available");
+  }
+  const role = isUserExists?.role;
+  const userId = isUserExists?._id;
+  let result;
+  if (role === "mealProvider") {
+    result = await MealProvider.findOne(
+      { user: userId },
+      { isDeleted: 0, createdAt: 0, updatedAt: 0 }
+    ).populate({ path: "user", select: "-isDeleted -updatedAt" });
+  }
+  if (role === "admin" || role === "customer") {
+    result = await Customer.findOne(
+      { user: userId },
+      { isDeleted: 0, createdAt: 0, updatedAt: 0 }
+    ).populate({ path: "user", select: "-isDeleted -updatedAt" });
+  }
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "user data is not available");
+  }
+  return result;
+};
+
 const changeUserStatus = async ({
   status,
   userId,
@@ -468,11 +496,17 @@ const dleteMyAccount = async (id: string, payload: { password: string }) => {
 };
 
 const deleteAccount = async (id: string, role: string) => {
-  const isUserExist = await verifyUser(id);
+  const isUserExists = await User.findById(id).select("role isDeleted");
+  if (!isUserExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "user data is not available");
+  }
+  if (isUserExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "user data is not available");
+  }
   if (
     role === USER_ROLE.admin &&
-    (isUserExist?.role === USER_ROLE.admin ||
-      isUserExist?.role === USER_ROLE.superAdmin)
+    (isUserExists?.role === USER_ROLE.admin ||
+      isUserExists?.role === USER_ROLE.superAdmin)
   ) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
@@ -677,4 +711,5 @@ export const userService = {
   updatePhoneEmail,
   verifyEmail,
   getAllUsersWithProfile,
+  getUserProfile,
 };

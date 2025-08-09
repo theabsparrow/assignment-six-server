@@ -11,6 +11,7 @@ import { USER_ROLE } from "../user/user.const";
 import mongoose from "mongoose";
 import { User } from "../user/user.model";
 import { passwordMatching } from "../auth/auth.utills";
+import { Meal } from "../meal/meal.model";
 
 const createKitchen = async (id: string, payload: TKitchen) => {
   const isUSerExists = await User.findById(id);
@@ -144,6 +145,28 @@ const getMyKitchen = async (id: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, "kitchen not dound");
   }
   return isKitchenExist;
+};
+
+const getKitchenProfile = async (id: string) => {
+  const isKitchenExists = await Kitchen.findById(id)
+    .select("-updatedAt")
+    .populate({
+      path: "owner",
+      select: "name",
+    });
+  if (!isKitchenExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not found");
+  }
+  if (isKitchenExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not found");
+  }
+  const totalMeal = await Meal.countDocuments({
+    kitchen: isKitchenExists?._id,
+  });
+  return {
+    isKitchenExists,
+    totalMeal,
+  };
 };
 
 const updateKitchen = async ({
@@ -452,4 +475,5 @@ export const kitchenService = {
   deleteMyKitchen,
   deleteKitchen,
   updateStatus,
+  getKitchenProfile,
 };

@@ -136,7 +136,10 @@ const getMyMeals = async (query: Record<string, unknown>, id: string) => {
 };
 
 const getASingleMeal = async (id: string) => {
-  const isMealExists = await Meal.findById(id).populate("kitchen owner");
+  const isMealExists = await Meal.findById(id).populate({
+    path: "kitchen",
+    select: "kitchenName",
+  });
   if (!isMealExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }

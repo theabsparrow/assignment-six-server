@@ -117,7 +117,9 @@ const getAllKitchen = async (
 };
 
 const getASingleKitchen = async (id: string) => {
-  const result = await Kitchen.findById(id).populate("owner");
+  const result = await Kitchen.findById(id).select(
+    "-owner -hygieneCertificate -licenseOrCertificate -createdAt -updatedAt"
+  );
   if (!result) {
     throw new AppError(StatusCodes.NOT_FOUND, "this kitchen does not exist");
   }
@@ -127,7 +129,13 @@ const getASingleKitchen = async (id: string) => {
   if (!result?.isActive) {
     throw new AppError(StatusCodes.NOT_FOUND, "this kitchen does not exist");
   }
-  return result;
+  const totalMeal = await Meal.countDocuments({
+    kitchen: result?._id,
+  });
+  return {
+    result,
+    totalMeal,
+  };
 };
 
 const getMyKitchen = async (id: string) => {

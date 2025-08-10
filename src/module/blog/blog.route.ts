@@ -21,6 +21,11 @@ router.get(
   blogController.getAllBlogsList
 );
 router.get("/blog/:id", blogController.getASingleBlog);
+router.get(
+  "/blogProfile/:id",
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  blogController.getBlogProfile
+);
 router.patch(
   "/blog/:id",
   validateRequest(blogvalidation.updateBlogValidationSchema),

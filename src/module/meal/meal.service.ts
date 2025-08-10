@@ -10,6 +10,7 @@ import QueryBuilder from "../../builder/QueryBuilder";
 import mongoose from "mongoose";
 import { User } from "../user/user.model";
 import { searchLogService } from "../searchLog/searchLogService";
+import { USER_ROLE } from "../user/user.const";
 
 const createMeal = async (user: JwtPayload, payload: TMeal) => {
   const { userId } = user;
@@ -143,6 +144,19 @@ const getASingleMeal = async (id: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
   return isMealExists;
+};
+
+const getAMealsProfile = async (id: string) => {
+  const result = await Meal.findById(id)
+    .populate({ path: "kitchen", select: "kitchenName" })
+    .populate({ path: "owner", select: "name" });
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "mealInfo not found");
+  }
+  if (result?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "mealInfo not found");
+  }
+  return result;
 };
 
 const getSixMeals = async () => {
@@ -363,13 +377,28 @@ const updateMeal = async ({
   }
 };
 
-const deleteMeal = async (id: string) => {
-  const isMealExists = await Meal.findById(id).populate("kitchen owner");
+const deleteMeal = async (id: string, user: JwtPayload) => {
+  const { userRole, userId } = user;
+  const isMealExists = await Meal.findById(id).select("isDeleted owner");
   if (!isMealExists) {
-    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+    throw new AppError(StatusCodes.NOT_FOUND, "this meal doesn`t exists");
   }
   if (isMealExists?.isDeleted) {
-    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+    throw new AppError(StatusCodes.NOT_FOUND, "this meal doesn`t exists");
+  }
+  if (userRole === USER_ROLE.mealProvider) {
+    const providerID = await MealProvider.findOne({ user: userId }).select(
+      "user"
+    );
+    if (!providerID) {
+      throw new AppError(StatusCodes.NOT_FOUND, "failed to delete this meal");
+    }
+    if (isMealExists.owner.toString() !== providerID._id.toString()) {
+      throw new AppError(
+        StatusCodes.UNAUTHORIZED,
+        "you are not authorized to delete this meal"
+      );
+    }
   }
   const result = await Meal.findByIdAndUpdate(
     id,
@@ -393,4 +422,5 @@ export const mealService = {
   getCuisineType,
   getAllMealList,
   deleteMeal,
+  getAMealsProfile,
 };

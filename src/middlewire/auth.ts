@@ -26,7 +26,6 @@ export const auth = (...requiredRoles: TUSerRole[]) => {
     }
 
     const { userId, userRole } = decoded as JwtPayload;
-
     const isUserExists = await User.findById(userId);
     if (!isUserExists) {
       throw new AppError(StatusCodes.NOT_FOUND, "user does not exist");

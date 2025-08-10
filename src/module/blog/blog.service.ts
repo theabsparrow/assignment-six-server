@@ -108,6 +108,19 @@ const getASingleBlog = async (id: string) => {
   return result;
 };
 
+const getBlogProfile = async (id: string) => {
+  const result = await Blog.findById(id)
+    .select("-updatedAt -excerpts")
+    .populate({ path: "authorId", select: "role" });
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "this blog doesn`t exists");
+  }
+  if (result?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "this blog doesn`t exists");
+  }
+  return result;
+};
+
 const updateBlog = async ({
   user,
   payload,
@@ -210,4 +223,5 @@ export const blogService = {
   updateBlog,
   deleteBlog,
   getAllBlogsList,
+  getBlogProfile,
 };

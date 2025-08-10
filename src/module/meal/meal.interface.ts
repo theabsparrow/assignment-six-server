@@ -27,7 +27,7 @@ export type TcuisineType =
 
 export type TPortionSize = "Small" | "Medium" | "Large";
 export type TMeal = {
-  kitchen?: Types.ObjectId;
+  kitchen: Types.ObjectId;
   owner: Types.ObjectId;
   title: string;
   description: string;
@@ -39,7 +39,7 @@ export type TMeal = {
   allergies: TAlergies[];
   portionSize: TPortionSize;
   price: number;
-  avarageRating?: number;
+  avarageRating: number;
   ratingCount: number;
   imageUrl: string;
   availableDays: TCookingDay[];

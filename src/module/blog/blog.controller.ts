@@ -60,6 +60,19 @@ const getASingleBlog = catchAsync(
   }
 );
 
+const getBlogProfile = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const result = await blogService.getBlogProfile(id);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Blog is retirved successfully",
+      data: result,
+    });
+  }
+);
+
 const updateBlog = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
@@ -96,4 +109,5 @@ export const blogController = {
   updateBlog,
   deleteBlog,
   getAllBlogsList,
+  getBlogProfile,
 };

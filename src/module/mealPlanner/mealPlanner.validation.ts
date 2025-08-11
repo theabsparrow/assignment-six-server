@@ -23,17 +23,14 @@ const mealPlannerValidationSchema = z.object({
 
 const updateMealPlannerValidationSchema = z.object({
   title: z.string().min(1, "title is required").optional(),
+  foodPreference: z
+    .enum([...foodPreferance] as [string, ...string[]])
+    .optional(),
   addPreferredMealTime: z
     .array(z.enum([...mealTime] as [string, ...string[]]))
     .optional(),
   removePreferredMealTime: z
     .array(z.enum([...mealTime] as [string, ...string[]]))
-    .optional(),
-  addFoodPreference: z
-    .array(z.enum([...foodPreferance] as [string, ...string[]]))
-    .optional(),
-  removeFoodPreference: z
-    .array(z.enum([...foodPreferance] as [string, ...string[]]))
     .optional(),
   addPreferredMealDay: z
     .array(z.enum([...weekDays] as [string, ...string[]]))

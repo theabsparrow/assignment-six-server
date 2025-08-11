@@ -31,8 +31,6 @@ export type TMealPlanner = {
 export interface TExtendedMealPlanner extends TMealPlanner {
   addPreferredMealTime: FoodPreferenceOption[];
   removePreferredMealTime: FoodPreferenceOption[];
-  addFoodPreference: FoodPreferenceOption[];
-  removeFoodPreference: FoodPreferenceOption[];
   addPreferredMealDay: TCookingDay[];
   removePreferredMealDay: TCookingDay[];
   addDietaryPreferences: TDietaryPreference[];

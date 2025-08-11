@@ -29,4 +29,9 @@ router.patch(
   validateRequest(mealPlannerValidation.updateMealPlannerValidationSchema),
   mealPlannerController.updateMealPlanner
 );
+router.delete(
+  "/delete-plan/:id",
+  auth(USER_ROLE.customer, USER_ROLE.admin, USER_ROLE.superAdmin),
+  mealPlannerController.deleteMyplan
+);
 export const mealPlannerRoute = router;

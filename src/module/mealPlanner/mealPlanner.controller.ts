@@ -71,9 +71,27 @@ const updateMealPlanner = catchAsync(
   }
 );
 
+const deleteMyplan = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const user = req.user;
+    const result = await mealPlannerService.deleteMyplan({
+      id,
+      user,
+    });
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "meal plan  is deleted successfully",
+      data: result,
+    });
+  }
+);
+
 export const mealPlannerController = {
   createMealPlanner,
   getMyPlans,
   getASingleMyPlan,
   updateMealPlanner,
+  deleteMyplan,
 };

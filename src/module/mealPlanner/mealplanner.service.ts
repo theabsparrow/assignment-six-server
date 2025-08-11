@@ -9,6 +9,7 @@ import QueryBuilder from "../../builder/QueryBuilder";
 import { JwtPayload } from "jsonwebtoken";
 import mongoose from "mongoose";
 import { User } from "../user/user.model";
+import { USER_ROLE } from "../user/user.const";
 
 const createMealPlan = async (payload: TMealPlanner, userId: string) => {
   const isUSerExists = await User.findById(userId);
@@ -53,7 +54,9 @@ const getMyMealPlans = async (id: string, query: Record<string, unknown>) => {
   filter.isDeleted = false;
   query = { ...query, ...filter };
   const getMyPlansQuery = new QueryBuilder(
-    MealPlanner.find().populate("customer"),
+    MealPlanner.find().select(
+      "title foodPreference preferredMealTime isActive createdAt"
+    ),
     query
   )
     .search(["title"])
@@ -63,7 +66,6 @@ const getMyMealPlans = async (id: string, query: Record<string, unknown>) => {
     .fields();
   const result = await getMyPlansQuery.modelQuery;
   const meta = await getMyPlansQuery.countTotal();
-
   return { meta, result };
 };
 
@@ -100,7 +102,7 @@ const updateMealPlan = async ({
   const { userId } = user;
   const isUSerExists = await User.findById(userId);
   if (!isUSerExists) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to update plan");
   }
   if (!isUSerExists?.verifiedWithEmail) {
     throw new AppError(
@@ -119,14 +121,12 @@ const updateMealPlan = async ({
   if (mealPlannerExist?.customer.toString() !== isCustomer?._id.toString()) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
-      "you can`t update this kitchen info"
+      "you can`t update this plan info"
     );
   }
   const {
     addPreferredMealTime,
     removePreferredMealTime,
-    addFoodPreference,
-    removeFoodPreference,
     addPreferredMealDay,
     removePreferredMealDay,
     addDietaryPreferences,
@@ -143,28 +143,6 @@ const updateMealPlan = async ({
     );
     if (!updatedBasicData) {
       throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
-    }
-
-    // food preference
-    if (removeFoodPreference && removeFoodPreference.length > 0) {
-      const updated = await MealPlanner.findByIdAndUpdate(
-        id,
-        { $pull: { foodPreference: { $in: removeFoodPreference } } },
-        { session, new: true, runValidators: true }
-      );
-      if (!updated) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
-      }
-    }
-    if (addFoodPreference && addFoodPreference.length > 0) {
-      const updated = await MealPlanner.findByIdAndUpdate(
-        id,
-        { $addToSet: { foodPreference: { $each: addFoodPreference } } },
-        { session, new: true, runValidators: true }
-      );
-      if (!updated) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
-      }
     }
 
     // preferred meal time
@@ -243,9 +221,49 @@ const updateMealPlan = async ({
   }
 };
 
+const deleteMyplan = async ({ id, user }: { id: string; user: JwtPayload }) => {
+  const { userId, userRole } = user;
+  const isUSerExists = await User.findById(userId);
+  if (!isUSerExists) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to delete plan");
+  }
+  if (!isUSerExists?.verifiedWithEmail) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you need to verify your email at first"
+    );
+  }
+  const mealPlannerExist = await MealPlanner.findById(id).select("customer");
+  if (!mealPlannerExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
+  }
+  const isCustomer = await Customer.findOne({ user: userId }).select("user");
+  if (!isCustomer) {
+    throw new AppError(StatusCodes.NOT_FOUND, "data not dound");
+  }
+  if (userRole === USER_ROLE.customer) {
+    if (mealPlannerExist?.customer.toString() !== isCustomer?._id.toString()) {
+      throw new AppError(
+        StatusCodes.UNAUTHORIZED,
+        "you can`t delete this plan"
+      );
+    }
+  }
+  const result = await MealPlanner.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true }
+  );
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to delete plan");
+  }
+  return null;
+};
+
 export const mealPlannerService = {
   createMealPlan,
   getMyMealPlans,
   getASingleMyPlan,
   updateMealPlan,
+  deleteMyplan,
 };

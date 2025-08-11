@@ -51,7 +51,7 @@ const addSubscriber = async (user: JwtPayload, id: string) => {
         "faild to subscribe this kitchen"
       );
     }
-    const countSubscriber = Kitchen.findByIdAndUpdate(
+    const countSubscriber = await Kitchen.findByIdAndUpdate(
       isKitchenExists?._id,
       { $inc: { subscriber: 1 } },
       { new: true, session, runValidators: true }
@@ -153,8 +153,23 @@ const getMyAllSubscription = async (id: string) => {
   return getMySubscription;
 };
 
+const isSubscribedKitchen = async (kitchenId: string, userId: string) => {
+  const isSubscribed = await KitchenSubscriber.findOne({
+    kitchen: kitchenId,
+    user: userId,
+  }).select("user");
+  if (!isSubscribed) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "you are not a subscriber of this kitchen"
+    );
+  }
+  return isSubscribed;
+};
+
 export const kitchenSubscriberService = {
   addSubscriber,
   removeSubscriber,
   getMyAllSubscription,
+  isSubscribedKitchen,
 };

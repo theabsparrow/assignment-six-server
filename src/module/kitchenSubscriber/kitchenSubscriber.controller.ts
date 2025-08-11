@@ -51,8 +51,27 @@ const getMyAllSubscription = catchAsync(
   }
 );
 
+const isSubscribedKitchen = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user as JwtPayload;
+    const { userId } = user;
+    const id = req.params.id;
+    const result = await kitchenSubscriberService.isSubscribedKitchen(
+      id,
+      userId
+    );
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "you are a subscriber of this kitchen",
+      data: result,
+    });
+  }
+);
+
 export const kitchenSubscriberController = {
   addSubscriber,
   removeSubscriber,
   getMyAllSubscription,
+  isSubscribedKitchen,
 };

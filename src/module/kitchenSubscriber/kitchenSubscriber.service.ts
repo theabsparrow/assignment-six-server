@@ -4,7 +4,10 @@ import { Kitchen } from "../kitchen/kitchen.model";
 import AppError from "../../error/AppError";
 import { StatusCodes } from "http-status-codes";
 import { KitchenSubscriber } from "./kitchenSubscriber.model";
-import { TKitchenSubscriber } from "./kitchenSubscriber.interface";
+import {
+  TKitchenSubscriber,
+  TKitchenSybscriberQuery,
+} from "./kitchenSubscriber.interface";
 import mongoose from "mongoose";
 
 const addSubscriber = async (user: JwtPayload, id: string) => {
@@ -139,18 +142,97 @@ const removeSubscriber = async (id: string, userId: string) => {
   }
 };
 
-const getMyAllSubscription = async (id: string) => {
-  const getMySubscription = await KitchenSubscriber.find({ user: id }).populate(
-    {
-      path: "kitchen",
-      select:
-        "kitchenName kitchenType location hygieneCertified subscriber isActive",
+const getMyAllSubscription = async (
+  id: string,
+  query: TKitchenSybscriberQuery
+) => {
+  const {
+    searchTerm = "",
+    kitchenType,
+    isActive,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    page = 1,
+    limit = 10,
+  } = query;
+
+  const matchConditions: Record<string, any> = {
+    user: new mongoose.Types.ObjectId(id),
+  };
+
+  const searchConditions =
+    searchTerm.trim() !== ""
+      ? { "kitchen.kitchenName": { $regex: searchTerm, $options: "i" } }
+      : {};
+
+  const sortCondition: Record<string, number> =
+    sortBy === "createdAt" ? { createdAt: sortOrder === "asc" ? 1 : -1 } : {};
+
+  const parsedPage = Number(page);
+  const parsedLimit = Number(limit);
+  const skip = (parsedPage - 1) * parsedLimit;
+
+  try {
+    const results = await KitchenSubscriber.aggregate([
+      { $match: matchConditions },
+      {
+        $lookup: {
+          from: "kitchens",
+          localField: "kitchen",
+          foreignField: "_id",
+          as: "kitchen",
+        },
+      },
+      { $unwind: "$kitchen" },
+      {
+        $match: {
+          ...(kitchenType && { "kitchen.kitchenType": kitchenType }),
+          ...(isActive !== undefined && {
+            "kitchen.isActive": isActive === "true",
+          }),
+          ...searchConditions,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          createdAt: 1,
+          kitchen: {
+            _id: 1,
+            kitchenName: 1,
+            kitchenType: 1,
+            location: 1,
+            hygieneCertified: 1,
+            isActive: 1,
+          },
+        },
+      },
+      {
+        $sort: sortCondition as { [key: string]: 1 | -1 },
+      },
+      { $skip: skip },
+      { $limit: parsedLimit },
+    ]);
+
+    if (!results.length) {
+      throw new AppError(StatusCodes.NOT_FOUND, "no subscription data found");
     }
-  );
-  if (getMySubscription.length === 0) {
-    throw new AppError(StatusCodes.NOT_FOUND, "no subscription data found");
+    const total = await KitchenSubscriber.countDocuments({
+      ...matchConditions,
+      ...searchConditions,
+    });
+    const meta = {
+      page,
+      limit,
+      total,
+    };
+    return {
+      meta,
+      results,
+    };
+  } catch (err: any) {
+    throw new AppError(StatusCodes.NOT_FOUND, err);
   }
-  return getMySubscription;
 };
 
 const isSubscribedKitchen = async (kitchenId: string, userId: string) => {

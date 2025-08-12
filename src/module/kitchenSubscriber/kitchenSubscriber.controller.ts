@@ -41,7 +41,11 @@ const getMyAllSubscription = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as JwtPayload;
     const { userId } = user;
-    const result = await kitchenSubscriberService.getMyAllSubscription(userId);
+    const query = req.query;
+    const result = await kitchenSubscriberService.getMyAllSubscription(
+      userId,
+      query
+    );
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

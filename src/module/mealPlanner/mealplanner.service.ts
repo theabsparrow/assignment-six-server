@@ -62,11 +62,10 @@ const getMyMealPlans = async (id: string, query: Record<string, unknown>) => {
     .search(["title"])
     .filter()
     .sort()
-    .paginateQuery()
     .fields();
   const result = await getMyPlansQuery.modelQuery;
-  const meta = await getMyPlansQuery.countTotal();
-  return { meta, result };
+
+  return result;
 };
 
 const getASingleMyPlan = async (user: JwtPayload, id: string) => {

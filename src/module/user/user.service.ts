@@ -344,10 +344,12 @@ const getAllUsersWithProfile = async (query: TQuery) => {
       ...matchConditions,
       ...searchConditions,
     });
+    const totalPage = Math.ceil(total / parsedLimit);
     const meta = {
-      page,
-      limit,
+      page: parsedPage,
+      limit: parsedLimit,
       total,
+      totalPage,
     };
     return {
       meta,

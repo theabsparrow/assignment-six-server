@@ -117,11 +117,13 @@ const getMyMeals = async (query: Record<string, unknown>, id: string) => {
   const filter: Record<string, unknown> = {};
   filter.isDeleted = false;
   filter.owner = isMealProviderExists?._id;
-  query = { ...query, ...filter };
-  const getMyMealsQuery = new QueryBuilder(
-    Meal.find().populate("kitchen owner"),
-    query
-  )
+  query = {
+    ...query,
+    fields:
+      "title,foodCategory,foodPreference, cuisineType, portionSize, avarageRating, createdAt, isAvailable, price",
+    ...filter,
+  };
+  const getMyMealsQuery = new QueryBuilder(Meal.find(), query)
     .search(["title"])
     .filter()
     .sort()
@@ -133,6 +135,38 @@ const getMyMeals = async (query: Record<string, unknown>, id: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
   return { meta, result };
+};
+
+const getMyMealDetails = async (userId: string, id: string) => {
+  const isMealExists = await Meal.findById(id);
+  if (!isMealExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  if (isMealExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  const isMealProvider = await MealProvider.findOne({ user: userId }).select(
+    "user"
+  );
+  if (!isMealProvider) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  const isKitchenExists = await Kitchen.findOne({
+    owner: isMealProvider?._id,
+  }).select("owner");
+  if (!isKitchenExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  if (
+    isMealExists?.kitchen?.toString() !== isKitchenExists?._id.toString() ||
+    isMealExists?.owner.toString() !== isMealProvider._id.toString()
+  ) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "you can`t visit this meal profile"
+    );
+  }
+  return isMealExists;
 };
 
 const getASingleMeal = async (id: string) => {
@@ -413,6 +447,7 @@ const deleteMeal = async (id: string, user: JwtPayload) => {
   }
   return null;
 };
+
 export const mealService = {
   createMeal,
   getAllMeals,
@@ -426,4 +461,5 @@ export const mealService = {
   getAllMealList,
   deleteMeal,
   getAMealsProfile,
+  getMyMealDetails,
 };

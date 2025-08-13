@@ -26,6 +26,11 @@ router.get(
   authRefesh(USER_ROLE.mealProvider),
   mealController.getMyMeals
 );
+router.get(
+  "/my-mealDetails/:id",
+  authRefesh(USER_ROLE.mealProvider),
+  mealController.getMyMealDetails
+);
 router.get("/get-meal/:id", mealController.getASingleMeal);
 router.get(
   "/get-mealProfile/:id",

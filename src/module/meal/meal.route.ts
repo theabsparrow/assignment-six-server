@@ -37,7 +37,6 @@ router.get(
   authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
   mealController.getAMealsProfile
 );
-router.get("/recent-meals", mealController.getSixMeals);
 router.get("/meal-category", mealController.getFoodCategory);
 router.get("/meal-preference", mealController.getFoodPreference);
 router.get("/cuisine-type", mealController.getCuisineType);

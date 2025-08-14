@@ -46,7 +46,9 @@ const createBlog = async (id: string, payload: TBlog) => {
 const getAllBlogs = async (query: Record<string, unknown>) => {
   const filter: Record<string, unknown> = {};
   filter.isDeleted = false;
-  filter.status = "published";
+  if (!query?.status) {
+    filter.status = "published";
+  }
   query = { ...query, ...filter };
   const blogQuery = new QueryBuilder(Blog.find(), query)
     .search(["title", "tags"])

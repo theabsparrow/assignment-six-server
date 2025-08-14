@@ -48,7 +48,21 @@ const createMeal = async (user: JwtPayload, payload: TMeal) => {
 const getAllMeals = async (query: Record<string, unknown>) => {
   const filter: Record<string, unknown> = {};
   filter.isDeleted = false;
-  query = { ...query, ...filter };
+  if (query?.isAvailable && typeof query?.isAvailable === "string") {
+    if (query?.isAvailable === "true") {
+      filter.isAvailable = true;
+    } else if (query?.isAvailable === "false") {
+      filter.isAvailable = false;
+    }
+  } else {
+    filter.isAvailable = true;
+  }
+  query = {
+    ...query,
+    fields:
+      "title,foodCategory, cuisineType, foodPreference, price, isAvailable, imageUrl",
+    ...filter,
+  };
   const searchTerm = query?.searchTerm;
   if (searchTerm) {
     searchLogService
@@ -196,14 +210,6 @@ const getAMealsProfile = async (id: string) => {
   if (result?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "mealInfo not found");
   }
-  return result;
-};
-
-const getSixMeals = async () => {
-  const result = await Meal.find()
-    .sort({ createdAt: -1 })
-    .limit(6)
-    .select("title cuisineType price imageUrl foodPreference foodCategory");
   return result;
 };
 
@@ -457,7 +463,6 @@ export const mealService = {
   getASingleMeal,
   updateMeal,
   getMyMeals,
-  getSixMeals,
   getFoodCategory,
   getFoodPreference,
   getCuisineType,

@@ -166,7 +166,10 @@ const getMyMealDetails = async (userId: string, id: string) => {
       "you can`t visit this meal profile"
     );
   }
-  return isMealExists;
+  const result = await Meal.findById(id).select(
+    "-isDeleted -kitchen -owner -updatedAt"
+  );
+  return result;
 };
 
 const getASingleMeal = async (id: string) => {

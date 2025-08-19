@@ -64,7 +64,6 @@ const getMyMealPlans = async (id: string, query: Record<string, unknown>) => {
     .sort()
     .fields();
   const result = await getMyPlansQuery.modelQuery;
-
   return result;
 };
 

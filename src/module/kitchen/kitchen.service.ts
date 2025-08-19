@@ -12,6 +12,7 @@ import mongoose from "mongoose";
 import { User } from "../user/user.model";
 import { passwordMatching } from "../auth/auth.utills";
 import { Meal } from "../meal/meal.model";
+import { KitchenSubscriber } from "../kitchenSubscriber/kitchenSubscriber.model";
 
 const createKitchen = async (id: string, payload: TKitchen) => {
   const isUSerExists = await User.findById(id);
@@ -116,7 +117,7 @@ const getAllKitchen = async (
   return { meta, result };
 };
 
-const getASingleKitchen = async (id: string) => {
+const getASingleKitchen = async (id: string, userId: string) => {
   const result = await Kitchen.findById(id).select(
     "-owner -hygieneCertificate -licenseOrCertificate -createdAt -updatedAt"
   );
@@ -132,9 +133,29 @@ const getASingleKitchen = async (id: string) => {
   const totalMeal = await Meal.countDocuments({
     kitchen: result?._id,
   });
+  const topMeals = await Meal.find({
+    kitchen: result?._id,
+    isAvailable: true,
+    isDeleted: false,
+  })
+    .sort({ averageRating: -1 })
+    .limit(4)
+    .select(
+      "title foodCategory cuisineType foodPreference price imageUrl avarageRating ratingCount isAvailable"
+    );
+  let subscribed: boolean = false;
+  const isSubscribed = await KitchenSubscriber.findOne({
+    kitchen: result?._id,
+    user: userId,
+  }).select("user");
+  if (isSubscribed) {
+    subscribed = true;
+  }
   return {
     result,
     totalMeal,
+    topMeals,
+    subscribed,
   };
 };
 

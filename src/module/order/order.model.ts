@@ -3,25 +3,6 @@ import { TOrder } from "./order.interface";
 import { orderStatus } from "./order.const";
 import { weekDays } from "../kitchen/kitchen.const";
 
-// const deliveryAddressSchema = new Schema<TDeliveryAddress>({
-//   area: {
-//     type: String,
-//     required: [true, "area is required"],
-//   },
-//   street: {
-//     type: String,
-//     required: [true, "street is required"],
-//   },
-//   houseNo: {
-//     type: String,
-//     required: [true, "house no is required"],
-//   },
-//   city: {
-//     type: String,
-//     default: "Dhaka",
-//   },
-// });
-
 const OrderSchema = new Schema<TOrder>(
   {
     customerId: {
@@ -38,10 +19,6 @@ const OrderSchema = new Schema<TOrder>(
       type: Schema.Types.ObjectId,
       ref: "Meal",
       required: [true, "meal id is required"],
-    },
-    mealPlanner: {
-      type: Schema.Types.ObjectId,
-      ref: "MealPlanner",
     },
     quantity: {
       type: Number,
@@ -61,6 +38,11 @@ const OrderSchema = new Schema<TOrder>(
       enum: orderStatus,
       default: "Pending",
     },
+    deliveryDays: {
+      type: [String],
+      enum: weekDays,
+      required: [true, "delivery days are required"],
+    },
     deliveryTime: {
       type: [String],
       enum: ["Breakfast", "Lunch", "Dinner"],
@@ -68,11 +50,7 @@ const OrderSchema = new Schema<TOrder>(
     deliveryMode: {
       type: String,
       enum: ["mealPlanner", "manual"],
-      default: "manual",
-    },
-    deliveryDays: {
-      type: [String],
-      enum: weekDays,
+      required: [true, "delivery mode is required"],
     },
     orderType: {
       type: String,
@@ -81,7 +59,6 @@ const OrderSchema = new Schema<TOrder>(
     },
     isActive: {
       type: Boolean,
-      default: true,
     },
     deliveredCount: {
       type: Number,
@@ -93,10 +70,14 @@ const OrderSchema = new Schema<TOrder>(
     },
     note: {
       type: String,
+      min: [10, "notes should be more than 10 charcter"],
+      max: [200, "notes can`t be more than 200 character"],
     },
     deliveryAddress: {
       type: String,
       required: [true, "delivery address is required"],
+      min: [5, "adderess can`t be less than 5 character "],
+      max: [100, "adderess can`t be more than 100 character "],
     },
     payment: {
       type: String,

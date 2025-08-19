@@ -11,6 +11,8 @@ import mongoose from "mongoose";
 import { User } from "../user/user.model";
 import { searchLogService } from "../searchLog/searchLogService";
 import { USER_ROLE } from "../user/user.const";
+import { Customer } from "../customer/customer.model";
+import { MealPlanner } from "../mealPlanner/mealPlanner.model";
 
 const createMeal = async (user: JwtPayload, payload: TMeal) => {
   const { userId } = user;
@@ -198,6 +200,61 @@ const getASingleMeal = async (id: string) => {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
   return isMealExists;
+};
+
+const getCheckoutmealDetails = async (id: string, userId: string) => {
+  const isMealExists = await Meal.findById(id)
+    .select(
+      "kitchen title foodPreference availableTime availableDays dietaryPreferences price isDeleted isAvailable"
+    )
+    .populate({
+      path: "kitchen",
+      select: "kitchenName",
+    });
+  if (!isMealExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  if (isMealExists?.isDeleted || !isMealExists?.isAvailable) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+
+  const customerData = await Customer.findOne({ user: userId })
+    .select("name user")
+    .populate({ path: "user", select: "email phone verifiedWithEmail" });
+  if (!customerData) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "somwthing went wrong data found"
+    );
+  }
+  const personalInfo = {
+    name: customerData?.name,
+    email: (customerData?.user as any)?.email,
+    phone: (customerData?.user as any)?.phone,
+    verified: (customerData?.user as any)?.verifiedWithEmail,
+  };
+  const query: {
+    sort: "title";
+    fields: string;
+    customer: string;
+    isDeleted: boolean;
+  } = {
+    sort: "title",
+    fields:
+      "title preferredMealTime preferredMealDay foodPreference dietaryPreferences",
+    customer: customerData._id.toString(),
+    isDeleted: false,
+  };
+  const getMyPlansQuery = new QueryBuilder(MealPlanner.find(), query)
+    .filter()
+    .sort()
+    .fields();
+  const result = await getMyPlansQuery.modelQuery;
+  return {
+    isMealExists,
+    personalInfo,
+    result,
+  };
 };
 
 const getAMealsProfile = async (id: string) => {
@@ -470,4 +527,5 @@ export const mealService = {
   deleteMeal,
   getAMealsProfile,
   getMyMealDetails,
+  getCheckoutmealDetails,
 };

@@ -40,7 +40,9 @@ const getAllKitchen = catchAsync(
 const getASingleKitchen = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
-    const result = await kitchenService.getASingleKitchen(id);
+    const user = req.user as JwtPayload;
+    const { userId } = user;
+    const result = await kitchenService.getASingleKitchen(id, userId);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

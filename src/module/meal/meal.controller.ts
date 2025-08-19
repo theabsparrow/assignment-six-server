@@ -78,6 +78,21 @@ const getASingleMeal = catchAsync(
   }
 );
 
+const getCheckoutmealDetails = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const user = req.user as JwtPayload;
+    const { userId } = user;
+    const result = await mealService.getCheckoutmealDetails(id, userId);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "meal is retrived successfully",
+      data: result,
+    });
+  }
+);
+
 const getAMealsProfile = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
@@ -183,4 +198,5 @@ export const mealController = {
   deleteMeal,
   getAMealsProfile,
   getMyMealDetails,
+  getCheckoutmealDetails,
 };

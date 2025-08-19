@@ -33,6 +33,12 @@ router.get(
 );
 router.get("/get-meal/:id", mealController.getASingleMeal);
 router.get(
+  "/get-checkoutMeal/:id",
+  authRefesh(USER_ROLE.customer),
+  mealController.getCheckoutmealDetails
+);
+
+router.get(
   "/get-mealProfile/:id",
   authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
   mealController.getAMealsProfile

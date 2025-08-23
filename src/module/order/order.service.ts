@@ -245,7 +245,7 @@ const getMyOrder = async (user: JwtPayload, query: Record<string, unknown>) => {
     ];
   } else {
     query.fields =
-      "mealId kitchenIdc customerId deliveryMode orderType status payment createdAt endDate isActive quantity totalPrice deliveryAddress";
+      "mealId kitchenId customerId deliveryMode orderType status payment createdAt isActive deliveryAddress";
     populateField = [
       { path: "mealId", select: "title " },
       { path: "customerId", select: "name" },

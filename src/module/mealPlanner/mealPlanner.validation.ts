@@ -7,7 +7,8 @@ const mealPlannerValidationSchema = z.object({
     .string({
       required_error: "title is required",
     })
-    .min(1, "title is required"),
+    .min(1, "title is required")
+    .max(100, "title can`t be more than 100 character"),
   preferredMealTime: z.array(z.enum([...mealTime] as [string, ...string[]])),
   preferredMealDay: z.array(z.enum([...weekDays] as [string, ...string[]])),
   foodPreference: z.enum([...foodPreferance] as [string, ...string[]]),
@@ -18,11 +19,16 @@ const mealPlannerValidationSchema = z.object({
     .string({
       required_error: "note is required",
     })
-    .min(1, "title is required"),
+    .min(10, "note should be at least 5 character")
+    .max(300, "notes can1t be more than 500 character"),
 });
 
 const updateMealPlannerValidationSchema = z.object({
-  title: z.string().min(1, "title is required").optional(),
+  title: z
+    .string()
+    .min(1, "title is required")
+    .max(100, "title can`t be more than 100 character")
+    .optional(),
   foodPreference: z
     .enum([...foodPreferance] as [string, ...string[]])
     .optional(),
@@ -44,7 +50,11 @@ const updateMealPlannerValidationSchema = z.object({
   removeDietaryPreferences: z
     .array(z.enum([...diateryPreference] as [string, ...string[]]))
     .optional(),
-  notes: z.string().min(1, "title is required").optional(),
+  notes: z
+    .string()
+    .min(10, "title is required")
+    .max(300, "notes can1t be more than 500 character")
+    .optional(),
   isActive: z.boolean().optional(),
 });
 

@@ -373,11 +373,23 @@ const getUserProfile = async (id: string) => {
     userId = isUser._id.toString();
     role = isUser?.role;
   } else {
-    result = await MealProvider.findById(id, {
+    const mealProviderExists = await MealProvider.findById(id, {
       isDeleted: 0,
       createdAt: 0,
       updatedAt: 0,
     }).populate({ path: "user", select: "-isDeleted -updatedAt" });
+    if (mealProviderExists) {
+      result = mealProviderExists;
+    } else {
+      const customerExists = await Customer.findById(id, {
+        isDeleted: 0,
+        createdAt: 0,
+        updatedAt: 0,
+      }).populate({ path: "user", select: "-isDeleted -updatedAt" });
+      if (customerExists) {
+        result = customerExists;
+      }
+    }
   }
 
   if (role === "mealProvider") {

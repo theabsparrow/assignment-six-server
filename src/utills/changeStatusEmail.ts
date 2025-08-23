@@ -1,4 +1,4 @@
-import { TemailOrderStatus } from "../interface/global";
+import { TemailOrderStatus } from "../module/order/order.interface";
 
 export const changeStatusEmailTemplate = (
   link: string,

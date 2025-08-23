@@ -1,4 +1,4 @@
-import { TemailOrder } from "../interface/global";
+import { TemailOrder } from "../module/order/order.interface";
 
 export const orderEmailTemplate = (
   link: string,

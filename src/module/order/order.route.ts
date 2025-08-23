@@ -15,13 +15,13 @@ router.post(
 );
 router.get(
   "/myOrders",
-  authRefesh(USER_ROLE.customer),
+  authRefesh(
+    USER_ROLE.customer,
+    USER_ROLE.mealProvider,
+    USER_ROLE.admin,
+    USER_ROLE.superAdmin
+  ),
   orderController.getMyOrder
-);
-router.get(
-  "/mealProvider-orders",
-  authRefesh(USER_ROLE.mealProvider),
-  orderController.getMealProvidersOrder
 );
 router.patch(
   "/change-status/:id",
@@ -38,5 +38,15 @@ router.patch(
   "/update-deliveryCount/:id",
   auth(USER_ROLE.admin, USER_ROLE.mealProvider, USER_ROLE.superAdmin),
   orderController.updateDeliveryCount
+);
+router.delete(
+  "/delete-order/:id",
+  auth(
+    USER_ROLE.admin,
+    USER_ROLE.customer,
+    USER_ROLE.mealProvider,
+    USER_ROLE.superAdmin
+  ),
+  orderController.deleteOrder
 );
 export const orderRoute = router;

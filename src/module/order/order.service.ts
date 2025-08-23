@@ -2,7 +2,13 @@
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../error/AppError";
 import { Meal } from "../meal/meal.model";
-import { TOrder, TOrderStatus } from "./order.interface";
+import {
+  TemailOrder,
+  TemailOrderStatus,
+  TgetOrder,
+  TOrder,
+  TOrderStatus,
+} from "./order.interface";
 import { Kitchen } from "../kitchen/kitchen.model";
 import { Customer } from "../customer/customer.model";
 import { Order } from "./order.model";
@@ -13,18 +19,13 @@ import { MealProvider } from "../mealProvider/mealProvider.model";
 import config from "../../config";
 import { orderEmailTemplate } from "../../utills/orderEmailTemplate";
 import { sendEmail } from "../../utills/sendEmail";
-import { TemailOrder, TemailOrderStatus } from "../../interface/global";
 import { changeStatusEmailTemplate } from "../../utills/changeStatusEmail";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { User } from "../user/user.model";
 import {
   isCustomerExists,
-  isKitchen,
-  isOrder,
-  mealInfo,
   mealProviderInfo,
   priorityToChange,
-  providerEmail,
   userInfo,
 } from "./order.utilities";
 
@@ -37,20 +38,21 @@ const createOrder = async ({
   userId: string;
   payload: TOrder;
 }) => {
-  const isUSerExists = await User.findById(userId);
-  if (!isUSerExists) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
-  }
+  // confirm email verified
+  const isUSerExists = await User.findById(userId).select(
+    "email verifiedWithEmail"
+  );
   if (!isUSerExists?.verifiedWithEmail) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "you need to verify your email at first"
     );
   }
+  // confirm meal existence
   const isMealExist = await Meal.findById(id).select(
-    "owner kitchen isAvailable title"
+    "kitchen isAvailable isDeleted title price"
   );
-  if (!isMealExist) {
+  if (!isMealExist || isMealExist?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "this meal data not found");
   }
   if (!isMealExist?.isAvailable) {
@@ -59,40 +61,114 @@ const createOrder = async ({
       "this meal is not available right now"
     );
   }
-  const provider = await providerEmail(isMealExist?.owner.toString() as string);
-
-  const isKitchenExists = await isKitchen(
-    isMealExist?.kitchen?.toString() as string
-  );
-  const isUserExists = await User.findById(userId);
-  if (!isUserExists) {
-    throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
-  }
+  // confirm customer existence
   const isCustomerExist = await Customer.findOne({ user: userId }).select(
     "name"
   );
   if (!isCustomerExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
   }
+  // is this order is aklready active
+  const isOrdered = await Order.findOne({
+    customerId: isCustomerExist?._id,
+    mealId: isMealExist?._id,
+  }).select("orderType status isActive");
+  if (
+    isOrdered &&
+    isOrdered.orderType === "once" &&
+    payload.orderType === "once"
+  ) {
+    const blockedStatuses = [
+      "Pending",
+      "Confirmed",
+      "Cooking",
+      "OutForDelivery",
+      "ReadyForPickup",
+    ];
+    if (blockedStatuses.includes(isOrdered.status)) {
+      throw new AppError(
+        StatusCodes.CONFLICT,
+        `You have already ordered this food and the order is now ${isOrdered.status}`
+      );
+    }
+  }
+  if (
+    isOrdered &&
+    isOrdered.orderType === "regular" &&
+    payload.orderType === "regular" &&
+    isOrdered?.isActive
+  ) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      `You have already ordered this food as regular order and it is active right now`
+    );
+  }
+  // confirm kitchen existence
+  const isKitchenExists = await Kitchen.findById(isMealExist?.kitchen)
+    .select("isActive isDeleted kitchenName owner")
+    .populate({ path: "owner", select: "name" });
+  if (!isKitchenExists || isKitchenExists?.isDeleted) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "the provided by the kitchen is unavailable"
+    );
+  }
+  if (!isKitchenExists?.isActive) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "the provided by the kitchen is unavailable"
+    );
+  }
+  // confirm provider existence
+  const providerInfo = await MealProvider.findById(isKitchenExists?.owner)
+    .select("user")
+    .populate<{ user: { _id: string; email: string } }>({
+      path: "user",
+      select: "email",
+    });
+  if (!providerInfo) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to place order");
+  }
+
+  // insert order data
   payload.customerId = isCustomerExist?._id;
   payload.kitchenId = isKitchenExists?._id;
   payload.mealId = isMealExist?._id;
-  payload.totalPrice = Number((payload.price * payload.quantity).toFixed(2));
-  if (payload?.mealPlanner) {
-    payload.deliveryMode = "mealPlanner";
+  payload.totalPrice = Number(
+    (isMealExist?.price * payload.quantity).toFixed(2)
+  );
+  if (payload?.orderType === "regular") {
+    payload.isActive = true;
+    payload.deliveredCount = 0;
   }
   const result = await Order.create(payload);
   if (!result) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to place the order");
   }
-  const orderInfo = await Order.findById(result?._id).populate(
-    "customerId kitchenId mealId mealPlanner"
+  const orderInfo = await Order.findById(result?._id).select(
+    "totalPrice, createdAt "
   );
   if (result && orderInfo) {
     const info: TemailOrder = {
       customerName: isCustomerExist?.name,
-      customerEmail: isUserExists?.email,
-      orderDate: orderInfo?.startDate,
+      customerEmail: isUSerExists?.email,
+      orderDate: orderInfo?.createdAt
+        ? new Date(orderInfo?.createdAt).toLocaleString("en-US", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })
+        : new Date().toLocaleString("en-US", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          }),
       kitchenName: isKitchenExists?.kitchenName,
       mealName: isMealExist?.title,
       totalAmount: orderInfo?.totalPrice,
@@ -100,62 +176,96 @@ const createOrder = async ({
     const link = `${config.client_certain_route}/mealProvider/${result?._id}`;
     const html = orderEmailTemplate(link, info);
     await sendEmail({
-      to: provider?.email,
+      to: (providerInfo.user as { _id: string; email: string }).email,
       html,
-      subject: `${isMealExist?.title} order is placed`,
+      subject: `order for ${isMealExist?.title} is placed`,
       text: "check this order to know more about this",
     });
     return orderInfo;
   }
 };
 
-const getMyOrder = async (id: string, query: Record<string, unknown>) => {
-  const isCustomerExists = await Customer.findOne({ user: id }).select("user");
-  if (!isCustomerExists) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "faild to retrive data");
+const getMyOrder = async (user: JwtPayload, query: Record<string, unknown>) => {
+  const { userRole, userId } = user;
+  let OrderOwner: TgetOrder | null = null;
+  // find customer id
+  if (userRole === USER_ROLE.customer) {
+    OrderOwner = await Customer.findOne({ user: userId }).select("name");
+    if (!OrderOwner) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to retrive data");
+    }
   }
-  const filter: Record<string, unknown> = {};
-  filter.isDeleted = false;
-  filter.customerId = isCustomerExists?._id;
-  query = { ...query, ...filter };
-  const orderQuery = new QueryBuilder(Order.find(), query)
-    .filter()
-    .sort()
-    .paginateQuery()
-    .fields();
-  const result = await orderQuery.modelQuery;
-  const meta = await orderQuery.countTotal();
-  if (!result) {
-    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  // find kitchen id
+  if (userRole === USER_ROLE.mealProvider) {
+    const isProvider = await MealProvider.findOne({ user: userId }).select(
+      "name"
+    );
+    if (!isProvider) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to retrive data");
+    }
+    OrderOwner = await Kitchen.findOne({ owner: isProvider?._id }).select(
+      "kitchenName"
+    );
   }
-  return { meta, result };
-};
 
-const getMealProviderOrder = async (
-  id: string,
-  query: Record<string, unknown>
-) => {
-  const isMealProviderExists = await MealProvider.findOne({ user: id }).select(
-    "user"
-  );
-  if (!isMealProviderExists) {
+  if (
+    (userRole === USER_ROLE.customer || userRole === USER_ROLE.mealProvider) &&
+    !OrderOwner
+  ) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to retrive data");
   }
-  const isKitchenExists = await Kitchen.findOne({
-    owner: isMealProviderExists?._id,
-  }).select("email");
-  if (!isKitchenExists) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "faild to retrive data");
-  }
+
+  // filtering system according to the role
   const filter: Record<string, unknown> = {};
   filter.isDeleted = false;
-  filter.kitchenId = isKitchenExists?._id;
+  if (query?.isActive && typeof query?.isActive === "string") {
+    if (query?.isActive === "true") {
+      filter.isActive = true;
+    } else if (query?.isActive === "false") {
+      filter.isActive = false;
+    }
+  }
+
+  let populateField: { path: string; select: string }[] = [];
+  if (userRole === USER_ROLE.customer) {
+    filter.customerId = OrderOwner?._id;
+    query.fields =
+      "mealId kitchenId deliveryMode orderType status payment createdAt endDate isActive";
+    populateField = [
+      { path: "mealId", select: "title " },
+      { path: "kitchenId", select: "kitchenName" },
+    ];
+  } else if (userRole === USER_ROLE.mealProvider) {
+    filter.kitchenId = OrderOwner?._id;
+    query.fields =
+      "mealId deliveryMode orderType status payment isActive quantity totalPrice deliveredCount deliveryAddress";
+    populateField = [
+      { path: "mealId", select: "title " },
+      { path: "customerId", select: "name" },
+    ];
+  } else {
+    query.fields =
+      "mealId kitchenIdc customerId deliveryMode orderType status payment createdAt endDate isActive quantity totalPrice deliveryAddress";
+    populateField = [
+      { path: "mealId", select: "title " },
+      { path: "customerId", select: "name" },
+      { path: "kitchenId", select: "kitchenName" },
+    ];
+  }
   query = { ...query, ...filter };
-  const orderQuery = new QueryBuilder(Order.find(), query)
+  // get operation in the database
+  const orderQuery = new QueryBuilder(
+    Order.find().populate(populateField),
+    query
+  )
+    .search(["deliveryAddress"])
     .filter()
     .sort()
     .paginateQuery()
     .fields();
+  populateField.forEach((pf) => {
+    orderQuery.modelQuery = orderQuery.modelQuery.populate(pf);
+  });
   const result = await orderQuery.modelQuery;
   const meta = await orderQuery.countTotal();
   if (!result) {
@@ -176,14 +286,14 @@ const changeOrderStatus = async ({
   const { userRole, userId } = user;
   priorityToChange(userRole, status);
   const userData = await userInfo(userId);
-  const isOrderExists = await isOrder(id);
+  const isOrderExists = await Order.findById(id);
   const customerExists = await isCustomerExists(
     isOrderExists?.customerId.toString() as string
   );
   const info: Partial<TemailOrderStatus> = {};
   info.customerName = customerExists?.name;
   info.customerEmail = customerExists?.email;
-  const mealName = await mealInfo(isOrderExists?.mealId.toString());
+  const mealName = await Meal.findById(isOrderExists?.mealId.toString());
 
   if (
     userRole === USER_ROLE.customer &&
@@ -243,7 +353,7 @@ const changeOrderStatus = async ({
       if (status === "Cancelled" || status === "Confirmed") {
         info.mealName = mealName?.title;
         info.orderStatus = status;
-        info.orderDate = isOrderExists?.startDate;
+        info.orderDate = isOrderExists?.createdAt;
         info.totalAmount = isOrderExists?.totalPrice;
         const link = `${config.client_certain_route}/meals}`;
         const html = changeStatusEmailTemplate(link, info as TemailOrderStatus);
@@ -373,10 +483,73 @@ const updateDeliveryCount = async (id: string, user: JwtPayload) => {
   }
 };
 
+const deleteOrder = async (id: string, user: JwtPayload) => {
+  const { userId, userRole } = user;
+  const isOrderExists = await Order.findById(id).select(
+    "isDeleted customerId kitchenId"
+  );
+  const isuserVerified = await User.findById(userId).select(
+    "verifiedWithEmail"
+  );
+  if (!isuserVerified || !isuserVerified?.verifiedWithEmail) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "verify your email at first");
+  }
+  if (!isOrderExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "this order not found");
+  }
+  if (userRole === USER_ROLE.customer) {
+    const isCustomerExist = await Customer.findOne({
+      user: isuserVerified?._id,
+    }).select("name");
+    if (!isCustomerExist) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to delete the order");
+    }
+    if (
+      isOrderExists.customerId.toString() !== isCustomerExist._id?.toString()
+    ) {
+      throw new AppError(
+        StatusCodes.UNAUTHORIZED,
+        "you can`t delete this order"
+      );
+    }
+  }
+  if (userRole === USER_ROLE.mealProvider) {
+    const isMealProviderExist = await MealProvider.findOne({
+      user: isuserVerified?._id,
+    }).select("name");
+    if (!isMealProviderExist) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to delete the order");
+    }
+    const isKitchenExists = await Kitchen.findOne({
+      owner: isMealProviderExist?._id,
+    }).select("kitchenName");
+    if (!isKitchenExists || isKitchenExists?.isDeleted) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to delete the order");
+    }
+    if (
+      isOrderExists.kitchenId.toString() !== isKitchenExists._id?.toString()
+    ) {
+      throw new AppError(
+        StatusCodes.UNAUTHORIZED,
+        "you can`t delete this order"
+      );
+    }
+  }
+  const result = await Order.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true }
+  );
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "faild to delete the order");
+  }
+  return null;
+};
+
 export const orderService = {
   createOrder,
   changeOrderStatus,
   updateDeliveryCount,
   getMyOrder,
-  getMealProviderOrder,
+  deleteOrder,
 };

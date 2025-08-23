@@ -25,10 +25,6 @@ const OrderSchema = new Schema<TOrder>(
       required: [true, "quantity is required"],
       min: [1, "Quantity must be at least 1"],
     },
-    price: {
-      type: Number,
-      required: [true, "price is required"],
-    },
     totalPrice: {
       type: Number,
       required: [true, "total price is required"],
@@ -62,11 +58,9 @@ const OrderSchema = new Schema<TOrder>(
     },
     deliveredCount: {
       type: Number,
-      default: 0,
     },
-    startDate: {
+    endDate: {
       type: String,
-      required: true,
     },
     note: {
       type: String,

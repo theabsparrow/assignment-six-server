@@ -7,5 +7,8 @@ export const orderStatus: TOrderStatus[] = [
   "Confirmed",
   "Delivered",
   "Cancelled",
+  "Cooking",
+  "ReadyForPickup",
+  "OutForDelivery",
 ];
 export const paymentMethod = ["online", "cash on delivery"];

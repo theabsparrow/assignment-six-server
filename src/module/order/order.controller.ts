@@ -42,24 +42,8 @@ const changeOrderStatus = catchAsync(
 const getMyOrder = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    const { userId } = user;
     const query = req.query;
-    const result = await orderService.getMyOrder(userId, query);
-    sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.CREATED,
-      message: "orders are retrived successfully",
-      data: result,
-    });
-  }
-);
-
-const getMealProvidersOrder = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user;
-    const { userId } = user;
-    const query = req.query;
-    const result = await orderService.getMealProviderOrder(userId, query);
+    const result = await orderService.getMyOrder(user, query);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,
@@ -83,10 +67,24 @@ const updateDeliveryCount = catchAsync(
   }
 );
 
+const deleteOrder = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const user = req.user;
+    const result = await orderService.deleteOrder(id, user);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.CREATED,
+      message: "delete the order successfully",
+      data: result,
+    });
+  }
+);
+
 export const orderController = {
   createOrder,
   changeOrderStatus,
   updateDeliveryCount,
   getMyOrder,
-  getMealProvidersOrder,
+  deleteOrder,
 };

@@ -6,6 +6,7 @@ import { catchAsync } from "../../utills/catchAsync";
 import { sendResponse } from "../../utills/sendResponse";
 import { NextFunction, Request, Response } from "express";
 import { blogService } from "./blog.service";
+import { JwtPayload } from "jsonwebtoken";
 
 const createBlog = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -103,6 +104,21 @@ const updateBlog = catchAsync(
   }
 );
 
+const updateBlogStatus = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const payload = req.body;
+    const user = req.user;
+    const result = await blogService.updateStatus({ id, user, payload });
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Blog status is updated successfully",
+      data: result,
+    });
+  }
+);
+
 const deleteBlog = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
@@ -126,4 +142,5 @@ export const blogController = {
   getAllBlogsList,
   getBlogProfile,
   getMyBlogs,
+  updateBlogStatus,
 };

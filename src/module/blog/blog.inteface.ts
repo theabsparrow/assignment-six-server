@@ -7,7 +7,7 @@ export type TBlog = {
   title: string;
   content: string;
   excerpts: string;
-  coverImage: string;
+  coverImage?: string;
   tags: string[];
   status: BlogStatus;
   view: number;

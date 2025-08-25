@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import mongoose, { Types } from "mongoose";
-import { IBlog, TBlog } from "./blog.inteface";
+import { BlogStatus, IBlog, TBlog } from "./blog.inteface";
 import { Blog } from "./blog.model";
 import AppError from "../../error/AppError";
 import { StatusCodes } from "http-status-codes";
@@ -39,8 +39,11 @@ const createBlog = async (id: string, payload: TBlog) => {
     }
     payload.name = admin?.name;
   }
-
-  payload.excerpts = payload.content.slice(0, 250);
+  const excerprt =
+    payload.content.length >= 250
+      ? payload.content.slice(0, 250)
+      : payload.content;
+  payload.excerpts = excerprt;
   payload.authorId = new Types.ObjectId(id);
 
   const result = await Blog.create(payload);
@@ -162,22 +165,20 @@ const updateBlog = async ({
   payload: Partial<IBlog>;
   id: string;
 }) => {
-  const { userId, userRole } = user;
-  const isBlogExists = await Blog.findById(id);
-  if (!isBlogExists) {
+  const { userId } = user;
+  const isBlogExists = await Blog.findById(id).select("isDeleted authorId");
+  if (!isBlogExists || isBlogExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "blog not found");
   }
-  if (isBlogExists?.isDeleted) {
-    throw new AppError(StatusCodes.NOT_FOUND, "blog not found");
-  }
-  if (
-    userRole === USER_ROLE.mealProvider &&
-    userId !== isBlogExists?.authorId.toString()
-  ) {
+  if (userId !== isBlogExists?.authorId.toString()) {
     throw new AppError(StatusCodes.UNAUTHORIZED, "you are unauthorized");
   }
   if (payload?.content) {
-    payload.excerpts = payload.content.slice(0, 250);
+    const exerpt =
+      payload.content.length >= 250
+        ? payload.content.slice(0, 250)
+        : payload.content;
+    payload.excerpts = exerpt;
   }
   const { addTags, removeTags, ...remaining } = payload;
   const session = await mongoose.startSession();
@@ -222,20 +223,61 @@ const updateBlog = async ({
   }
 };
 
-const deleteBlog = async (id: string, user: JwtPayload) => {
+const updateStatus = async ({
+  id,
+  user,
+  payload,
+}: {
+  id: string;
+  user: JwtPayload;
+  payload: { status: BlogStatus };
+}) => {
   const { userId, userRole } = user;
-  const isBlogExists = await Blog.findById(id);
-  if (!isBlogExists) {
+  const isBlogExists = await Blog.findById(id).select("isDeleted authorId");
+
+  if (!isBlogExists || isBlogExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "blog not found");
   }
-  if (isBlogExists?.isDeleted) {
+  const findRole = await User.findById(isBlogExists?.authorId).select("role");
+  if (
+    userRole === USER_ROLE.admin &&
+    findRole?.role === USER_ROLE.admin &&
+    isBlogExists.authorId.toString() !== userId
+  ) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      "you can`t update an admin owned blog"
+    );
+  }
+  const result = await Blog.findByIdAndUpdate(id, payload, { new: true });
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "status didn`t update");
+  }
+  return result;
+};
+
+const deleteBlog = async (id: string, user: JwtPayload) => {
+  const { userId, userRole } = user;
+  const isBlogExists = await Blog.findById(id).select("isDeleted authorId");
+  if (!isBlogExists || isBlogExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "blog not found");
   }
   if (
-    userRole === USER_ROLE.mealProvider &&
+    (userRole === USER_ROLE.mealProvider || userRole === USER_ROLE.customer) &&
     userId !== isBlogExists?.authorId.toString()
   ) {
     throw new AppError(StatusCodes.UNAUTHORIZED, "you are unauthorized");
+  }
+  const findRole = await User.findById(isBlogExists?.authorId).select("role");
+  if (
+    userRole === USER_ROLE.admin &&
+    findRole?.role === USER_ROLE.admin &&
+    isBlogExists.authorId.toString() !== userId
+  ) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      "you can`t delete an admin owned blog"
+    );
   }
   const result = await Blog.findByIdAndUpdate(
     id,
@@ -257,4 +299,5 @@ export const blogService = {
   getAllBlogsList,
   getBlogProfile,
   getMyBlogs,
+  updateStatus,
 };

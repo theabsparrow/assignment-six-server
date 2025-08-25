@@ -24,12 +24,10 @@ const blogSchema = new Schema<TBlog>(
     excerpts: {
       type: String,
       required: [true, "excerprts is required"],
-      man: [30, " excerpts can`t be less than 30 charcter"],
-      max: [30, " excerpts can`t be more than 30 charcter"],
+      max: [250, " excerpts can`t be more than 250 charcter"],
     },
     coverImage: {
       type: String,
-      required: [true, "coverImage is required"],
     },
     tags: {
       type: [String],

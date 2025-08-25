@@ -33,18 +33,39 @@ router.get(
 router.get("/blog/:id", blogController.getASingleBlog);
 router.get(
   "/blogProfile/:id",
-  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  authRefesh(
+    USER_ROLE.admin,
+    USER_ROLE.superAdmin,
+    USER_ROLE.customer,
+    USER_ROLE.mealProvider
+  ),
   blogController.getBlogProfile
 );
 router.patch(
   "/blog/:id",
   validateRequest(blogvalidation.updateBlogValidationSchema),
-  auth(USER_ROLE.admin, USER_ROLE.superAdmin, USER_ROLE.mealProvider),
+  auth(
+    USER_ROLE.admin,
+    USER_ROLE.superAdmin,
+    USER_ROLE.mealProvider,
+    USER_ROLE.customer
+  ),
   blogController.updateBlog
+);
+router.patch(
+  "/blog-status/:id",
+  validateRequest(blogvalidation.updateBlogStatusValidationSchema),
+  auth(USER_ROLE.admin, USER_ROLE.superAdmin),
+  blogController.updateBlogStatus
 );
 router.delete(
   "/blog/:id",
-  auth(USER_ROLE.admin, USER_ROLE.superAdmin, USER_ROLE.mealProvider),
+  auth(
+    USER_ROLE.admin,
+    USER_ROLE.superAdmin,
+    USER_ROLE.mealProvider,
+    USER_ROLE.customer
+  ),
   blogController.deleteBlog
 );
 export const blogRouter = router;

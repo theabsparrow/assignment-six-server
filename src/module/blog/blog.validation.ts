@@ -6,7 +6,6 @@ const blogValidationSchema = z.object({
     .string({
       required_error: "title is required",
     })
-    .min(2, { message: "title can`t be less than 2 charcter" })
     .max(50, { message: "title can`t be more than 50 charcter" })
     .trim(),
   content: z
@@ -14,7 +13,7 @@ const blogValidationSchema = z.object({
     .min(30, { message: "content can`t be less that 50 character" })
     .max(5000, { message: "content can`t be more than 5000 character" })
     .trim(),
-  coverImage: z.string().url("cover image must be a valid url"),
+  coverImage: z.string().url("cover image must be a valid url").optional(),
   tags: z
     .array(
       z
@@ -29,7 +28,6 @@ const updateBlogValidationSchema = z.object({
     .string({
       required_error: "title is required",
     })
-    .min(2, { message: "title can`t be less than 2 charcter" })
     .max(50, { message: "title can`t be more than 50 charcter" })
     .trim()
     .optional(),
@@ -50,7 +48,12 @@ const updateBlogValidationSchema = z.object({
     .optional(),
   removeTags: z.array(z.string()).optional(),
 });
+
+const updateBlogStatusValidationSchema = z.object({
+  status: z.enum([...blogStatus] as [string, ...string[]]),
+});
 export const blogvalidation = {
   blogValidationSchema,
   updateBlogValidationSchema,
+  updateBlogStatusValidationSchema,
 };

@@ -47,6 +47,21 @@ const getAllBlogsList = catchAsync(
   }
 );
 
+const getMyBlogs = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query = req.query;
+    const user = req.user;
+    const { userId } = user;
+    const result = await blogService.getMyBlogs(userId, query);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Blogs are retirved successfully",
+      data: result,
+    });
+  }
+);
+
 const getASingleBlog = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
@@ -110,4 +125,5 @@ export const blogController = {
   deleteBlog,
   getAllBlogsList,
   getBlogProfile,
+  getMyBlogs,
 };

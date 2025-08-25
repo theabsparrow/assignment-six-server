@@ -25,6 +25,13 @@ const createBlog = async (id: string, payload: TBlog) => {
     }
     payload.name = provider?.name;
   }
+  if (user?.role === USER_ROLE.customer) {
+    const customer = await Customer.findOne({ user: user?._id }).select("name");
+    if (!customer) {
+      throw new AppError(StatusCodes.NOT_FOUND, "user data not found");
+    }
+    payload.name = customer?.name;
+  }
   if (user?.role === USER_ROLE.admin) {
     const admin = await Customer.findOne({ user: user?._id }).select("name");
     if (!admin) {
@@ -74,6 +81,29 @@ const getAllBlogsList = async (query: Record<string, unknown>) => {
   };
   const blogQuery = new QueryBuilder(Blog.find().populate("authorId"), query)
     .search(["title", "name"])
+    .filter()
+    .sort()
+    .paginateQuery()
+    .fields();
+  const result = await blogQuery.modelQuery;
+  const meta = await blogQuery.countTotal();
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  return { meta, result };
+};
+
+const getMyBlogs = async (userId: string, query: Record<string, unknown>) => {
+  const filter: Record<string, unknown> = {};
+  filter.isDeleted = false;
+  filter.authorId = userId;
+  query = {
+    ...query,
+    fields: "title, status, createdAt, view , excerpts",
+    ...filter,
+  };
+  const blogQuery = new QueryBuilder(Blog.find(), query)
+    .search(["title"])
     .filter()
     .sort()
     .paginateQuery()
@@ -226,4 +256,5 @@ export const blogService = {
   deleteBlog,
   getAllBlogsList,
   getBlogProfile,
+  getMyBlogs,
 };

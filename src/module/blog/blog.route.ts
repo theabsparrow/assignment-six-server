@@ -11,7 +11,7 @@ const router = Router();
 router.post(
   "/create-blog",
   validateRequest(blogvalidation.blogValidationSchema),
-  auth(USER_ROLE.admin, USER_ROLE.mealProvider),
+  auth(USER_ROLE.admin, USER_ROLE.mealProvider, USER_ROLE.customer),
   blogController.createBlog
 );
 router.get("/blogs", blogController.getAllBlogs);
@@ -19,6 +19,16 @@ router.get(
   "/all-blogs",
   authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
   blogController.getAllBlogsList
+);
+router.get(
+  "/my-blogs",
+  authRefesh(
+    USER_ROLE.admin,
+    USER_ROLE.superAdmin,
+    USER_ROLE.mealProvider,
+    USER_ROLE.customer
+  ),
+  blogController.getMyBlogs
 );
 router.get("/blog/:id", blogController.getASingleBlog);
 router.get(

@@ -23,6 +23,16 @@ router.get(
   ),
   orderController.getMyOrder
 );
+router.get(
+  "/single-order/:id",
+  authRefesh(
+    USER_ROLE.customer,
+    USER_ROLE.mealProvider,
+    USER_ROLE.admin,
+    USER_ROLE.superAdmin
+  ),
+  orderController.getASingleOrder
+);
 router.patch(
   "/change-status/:id",
   auth(

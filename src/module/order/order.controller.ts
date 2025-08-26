@@ -53,6 +53,21 @@ const getMyOrder = catchAsync(
   }
 );
 
+const getASingleOrder = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { userRole } = user as JwtPayload;
+    const id = req.params.id;
+    const result = await orderService.getASingleOrder(id, userRole);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.CREATED,
+      message: "order is retrived successfully",
+      data: result,
+    });
+  }
+);
+
 const updateDeliveryCount = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
@@ -87,4 +102,5 @@ export const orderController = {
   updateDeliveryCount,
   getMyOrder,
   deleteOrder,
+  getASingleOrder,
 };

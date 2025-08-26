@@ -28,6 +28,7 @@ import {
   priorityToChange,
   userInfo,
 } from "./order.utilities";
+import { TUSerRole } from "../user/user.interface";
 
 const createOrder = async ({
   id,
@@ -272,6 +273,50 @@ const getMyOrder = async (user: JwtPayload, query: Record<string, unknown>) => {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
   return { meta, result };
+};
+
+const getASingleOrder = async (id: string, userRole: TUSerRole) => {
+  let populateItem: { path: string; select: string }[] = [];
+  let selectitems: string = "";
+
+  if (userRole === USER_ROLE.admin || userRole === USER_ROLE.superAdmin) {
+    populateItem = [
+      { path: "customerId", select: "name" },
+      { path: "kitchenId", select: "kitchenName" },
+      {
+        path: "mealId",
+        select: "title foodCategory cuisineType foodPreference",
+      },
+    ];
+    selectitems = "-updatedAt";
+  }
+  if (userRole === USER_ROLE.customer) {
+    populateItem = [
+      { path: "kitchenId", select: "kitchenName" },
+      {
+        path: "mealId",
+        select: "title foodCategory cuisineType foodPreference",
+      },
+    ];
+    selectitems = "-customerId";
+  }
+  if (userRole === USER_ROLE.mealProvider) {
+    populateItem = [
+      { path: "customerId", select: "name address gender" },
+      {
+        path: "mealId",
+        select: "title foodCategory cuisineType foodPreference",
+      },
+    ];
+    selectitems = "-kitchenId";
+  }
+  const isOrderExists = await Order.findById(id)
+    .select(selectitems)
+    .populate(populateItem);
+  if (!isOrderExists || isOrderExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "order data not found");
+  }
+  return isOrderExists;
 };
 
 const changeOrderStatus = async ({
@@ -552,4 +597,5 @@ export const orderService = {
   updateDeliveryCount,
   getMyOrder,
   deleteOrder,
+  getASingleOrder,
 };

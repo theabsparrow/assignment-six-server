@@ -18,7 +18,21 @@ const addRating = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,
-      message: "you have rated successfully",
+      message: "you have reviewed successfully",
+      data: result,
+    });
+  }
+);
+
+const removeRating = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const id = req.params.id;
+    const result = await ratingService.removeRating(id, user);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.CREATED,
+      message: "you have deleted your review successfully",
       data: result,
     });
   }
@@ -26,4 +40,5 @@ const addRating = catchAsync(
 
 export const ratingController = {
   addRating,
+  removeRating,
 };

@@ -7,6 +7,10 @@ import { Meal } from "../meal/meal.model";
 import { Rating } from "./rating.model";
 import mongoose from "mongoose";
 import { User } from "../user/user.model";
+import { Order } from "../order/order.model";
+import { JwtPayload } from "jsonwebtoken";
+import { USER_ROLE } from "../user/user.const";
+import { MealProvider } from "../mealProvider/mealProvider.model";
 
 const addRating = async ({
   payload,
@@ -17,57 +21,84 @@ const addRating = async ({
   userId: string;
   id: string;
 }) => {
-  const isUSerExists = await User.findById(userId);
-  if (!isUSerExists) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
-  }
-  if (!isUSerExists?.verifiedWithEmail) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "you need to verify your email at first"
-    );
+  // user verification
+  const isUSerExists = await User.findById(userId).select("verifiedWithEmail");
+  if (!isUSerExists || !isUSerExists?.verifiedWithEmail) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "verify your email at first");
   }
   const isCustomerExist = await Customer.findOne({
     user: isUSerExists?._id,
-  }).select("user");
+  }).select("name");
   if (!isCustomerExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "customer data not matched");
   }
-  const isMealExists = await Meal.findById(id).select("owner");
-  if (!isMealExists) {
+  // order verification
+  const isOrderExists = await Order.findById(id).select(
+    "mealId isDeleted status orderType isActive deliveredCount"
+  );
+  if (!isOrderExists || isOrderExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "order data not found");
+  }
+  // meal verification
+  const isMealExists = await Meal.findById(isOrderExists?.mealId).select(
+    "title isDeleted "
+  );
+  if (!isMealExists || isMealExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "meal data not matched");
   }
-  if (isMealExists?.isDeleted) {
-    throw new AppError(StatusCodes.NOT_FOUND, "meal data not matched");
+
+  if (isOrderExists?.orderType === "once") {
+    const alreadyrated = await Rating.findOne({
+      userId: isCustomerExist?._id,
+      orderId: isOrderExists?._id,
+    });
+    if (alreadyrated) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "you can`t rate again");
+    }
+    if (isOrderExists?.status !== "Delivered") {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "you can rate the meal after the delivery"
+      );
+    }
+  } else if (isOrderExists.orderType === "regular") {
+    if (isOrderExists.status !== "Delivered") {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "the order is not deliveried yet"
+      );
+    }
+    if (!payload?.deliveryNumber) {
+      payload.deliveryNumber = isOrderExists?.deliveredCount as number;
+    }
+    const alreadyRated = await Rating.findOne({
+      userId: isCustomerExist._id,
+      orderId: isOrderExists._id,
+      deliveryNumber: payload.deliveryNumber,
+    });
+    if (alreadyRated) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "You already rated this delivery"
+      );
+    }
   }
+
+  payload.mealId = isMealExists?._id;
+  payload.orderId = isOrderExists?._id;
+  payload.userId = isCustomerExist?._id;
+
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const isAlreadyRated = await Rating.findOne({
-      userId: isCustomerExist?._id,
-      mealId: isMealExists?._id,
-    });
-    let ratingResult = null;
-    if (isAlreadyRated) {
-      ratingResult = await Rating.findOneAndUpdate(
-        { userId: isCustomerExist?._id, mealId: isMealExists?._id },
-        payload,
-        { session, new: true, runValidators: true }
-      );
-      if (!ratingResult) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update rating");
-      }
-    } else {
-      payload.userId = isCustomerExist?._id;
-      payload.mealId = isMealExists?._id;
-      ratingResult = await Rating.create([payload], { session });
-      if (!ratingResult) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to rate this meal");
-      }
+    const ratingResult = await Rating.create([payload], { session });
+    if (!ratingResult.length) {
+      throw new AppError(StatusCodes.BAD_REQUEST, "faild to rate this meal");
     }
-    const allRatings = await Rating.find({ mealId: isMealExists?._id }).session(
-      session
-    );
+    const allRatings = await Rating.find({
+      mealId: isMealExists?._id,
+      isDeleted: false,
+    }).session(session);
     if (!allRatings.length) {
       throw new AppError(StatusCodes.BAD_REQUEST, "faild to rate this meal");
     }
@@ -97,41 +128,69 @@ const addRating = async ({
   }
 };
 
-const removeRating = async (id: string, userId: string) => {
-  const isCustomerExist = await Customer.findOne({
-    user: userId,
-  }).select("name");
-  if (!isCustomerExist) {
-    throw new AppError(StatusCodes.NOT_FOUND, "customer data not matched");
-  }
-  const isRatingExists = await Rating.findById(id).select("userId mealId");
-  if (!isRatingExists) {
+const removeRating = async (id: string, user: JwtPayload) => {
+  const { userId, userRole } = user;
+  // rating verification
+  const isRatingExists = await Rating.findById(id).select(
+    "userId mealId isDeleted"
+  );
+  if (!isRatingExists || isRatingExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "rating data not found");
   }
-  if (isCustomerExist._id.toString() !== isRatingExists.userId.toString()) {
-    throw new AppError(StatusCodes.UNAUTHORIZED, "you are unauthorized");
+  // meal verification
+  const isMealExists = await Meal.findById(isRatingExists?.mealId).select(
+    "title isDeleted owner"
+  );
+  if (!isMealExists || isMealExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "meal data not found");
   }
-  const isMealExists = await Meal.findById(isRatingExists?._id).select("owner");
-  if (!isMealExists) {
-    throw new AppError(StatusCodes.NOT_FOUND, "meal data not matched");
+
+  let userInfo = null;
+  // customer verification
+  if (userRole === USER_ROLE.customer) {
+    userInfo = await Customer.findOne({
+      user: userId,
+    }).select("name");
+    if (!userInfo) {
+      throw new AppError(StatusCodes.NOT_FOUND, "user data not matched");
+    }
+    if (userInfo._id.toString() !== isRatingExists.userId.toString()) {
+      throw new AppError(StatusCodes.UNAUTHORIZED, "you are unauthorized");
+    }
   }
-  if (isMealExists?.isDeleted) {
-    throw new AppError(StatusCodes.NOT_FOUND, "meal data not matched");
+  // meal provider verification
+  if (userRole === USER_ROLE.mealProvider) {
+    userInfo = await MealProvider.findOne({
+      user: userId,
+    }).select("name");
+    if (!userInfo) {
+      throw new AppError(StatusCodes.NOT_FOUND, "user data not matched");
+    }
+    if (userInfo._id.toString() !== isMealExists.owner.toString()) {
+      throw new AppError(StatusCodes.UNAUTHORIZED, "you are unauthorized");
+    }
   }
+
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const deleteRating = await Rating.findByIdAndDelete(isRatingExists?._id, {
-      session,
-      new: true,
-      runValidators: true,
-    });
+    const deleteRating = await Rating.findByIdAndUpdate(
+      isRatingExists?._id,
+      { isDeleted: true },
+      {
+        session,
+        new: true,
+        runValidators: true,
+      }
+    );
     if (!deleteRating) {
       throw new AppError(StatusCodes.BAD_REQUEST, "failed to delete rating");
     }
-    const allRatings = await Rating.find({ mealId: isMealExists?._id }).session(
-      session
-    );
+
+    const allRatings = await Rating.find({
+      mealId: isMealExists?._id,
+      isDeleted: false,
+    }).session(session);
     if (!allRatings.length) {
       throw new AppError(StatusCodes.BAD_REQUEST, "faild to remove rating");
     }

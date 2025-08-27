@@ -11,6 +11,7 @@ export type TOrderStatus =
   | "Cooking"
   | "ReadyForPickup"
   | "OutForDelivery";
+export type Tpayment = "online" | "cash on delivery";
 
 export type TOrder = {
   customerId: Types.ObjectId;
@@ -28,7 +29,7 @@ export type TOrder = {
   endDate?: string;
   note?: string;
   deliveryAddress: string;
-  payment: "online" | "cash on delivery";
+  payment: Tpayment;
   isDeleted: boolean;
   createdAt?: string;
   updatedAt?: string;

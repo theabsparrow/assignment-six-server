@@ -12,5 +12,14 @@ router.post(
   validateRequest(ratingValidation.ratingValidationSchema),
   ratingController.addRating
 );
-
+router.delete(
+  "/remove-rating/:id",
+  auth(
+    USER_ROLE.admin,
+    USER_ROLE.customer,
+    USER_ROLE.mealProvider,
+    USER_ROLE.superAdmin
+  ),
+  ratingController.removeRating
+);
 export const ratingRoute = router;

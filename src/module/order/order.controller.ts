@@ -58,7 +58,8 @@ const getASingleOrder = catchAsync(
     const user = req.user;
     const { userRole } = user as JwtPayload;
     const id = req.params.id;
-    const result = await orderService.getASingleOrder(id, userRole);
+    const query = req.query;
+    const result = await orderService.getASingleOrder({ id, userRole, query });
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,

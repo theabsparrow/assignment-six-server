@@ -5,7 +5,7 @@ export type TRating = {
   userId: Types.ObjectId;
   orderId: Types.ObjectId;
   rating: number;
-  deliveryNumber: number;
+  deliveryNumber?: number;
   feedback: string;
   isDeleted: boolean;
 };

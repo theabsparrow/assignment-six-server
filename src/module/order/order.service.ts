@@ -29,6 +29,7 @@ import {
   userInfo,
 } from "./order.utilities";
 import { TUSerRole } from "../user/user.interface";
+import { Rating } from "../rating/rating.model";
 
 const createOrder = async ({
   id,
@@ -141,6 +142,7 @@ const createOrder = async ({
   if (payload?.orderType === "regular") {
     payload.isActive = true;
     payload.deliveredCount = 0;
+    payload.endDate = "";
   }
   const result = await Order.create(payload);
   if (!result) {
@@ -275,17 +277,26 @@ const getMyOrder = async (user: JwtPayload, query: Record<string, unknown>) => {
   return { meta, result };
 };
 
-const getASingleOrder = async (id: string, userRole: TUSerRole) => {
+const getASingleOrder = async ({
+  id,
+  userRole,
+  query,
+}: {
+  id: string;
+  userRole: TUSerRole;
+  query: Record<string, unknown>;
+}) => {
   let populateItem: { path: string; select: string }[] = [];
   let selectitems: string = "";
 
   if (userRole === USER_ROLE.admin || userRole === USER_ROLE.superAdmin) {
     populateItem = [
-      { path: "customerId", select: "name" },
+      { path: "customerId", select: "name address gender" },
       { path: "kitchenId", select: "kitchenName" },
       {
         path: "mealId",
-        select: "title foodCategory cuisineType foodPreference",
+        select:
+          "title foodCategory cuisineType foodPreference price imageUrl portionSize",
       },
     ];
     selectitems = "-updatedAt";
@@ -295,7 +306,8 @@ const getASingleOrder = async (id: string, userRole: TUSerRole) => {
       { path: "kitchenId", select: "kitchenName" },
       {
         path: "mealId",
-        select: "title foodCategory cuisineType foodPreference",
+        select:
+          "title foodCategory cuisineType foodPreference price imageUrl portionSize",
       },
     ];
     selectitems = "-customerId";
@@ -305,7 +317,8 @@ const getASingleOrder = async (id: string, userRole: TUSerRole) => {
       { path: "customerId", select: "name address gender" },
       {
         path: "mealId",
-        select: "title foodCategory cuisineType foodPreference",
+        select:
+          "title foodCategory cuisineType foodPreference price imageUrl portionSize",
       },
     ];
     selectitems = "-kitchenId";
@@ -316,7 +329,49 @@ const getASingleOrder = async (id: string, userRole: TUSerRole) => {
   if (!isOrderExists || isOrderExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "order data not found");
   }
-  return isOrderExists;
+
+  let result;
+  let meta;
+
+  if (isOrderExists?.orderType === "once") {
+    const isRating = await Rating.findOne({
+      orderId: isOrderExists?._id,
+      isDeleted: false,
+    })
+      .select("-mealId -updatedAt -isDeleted")
+      .populate({ path: "userId", select: "name profileImage" });
+    if (isRating) {
+      result = isRating;
+    }
+  }
+
+  if (isOrderExists?.orderType === "regular") {
+    if (query.deliveryNumber) {
+      query.deliveryNumber = Number(query.deliveryNumber);
+    }
+    const filter: Record<string, unknown> = {};
+    filter.isDeleted = false;
+    filter.orderId = isOrderExists?._id;
+    query = {
+      ...query,
+      fields: "-mealId, -updatedAt, -isDeleted",
+      ...filter,
+    };
+    const ratingQuery = new QueryBuilder(Rating.find(), query)
+      .filter()
+      .paginateQuery()
+      .fields();
+    const reviewresult = await ratingQuery.modelQuery.populate({
+      path: "userId",
+      select: "name profileImage",
+    });
+    const metaData = await ratingQuery.countTotal();
+    if (reviewresult && reviewresult.length) {
+      result = reviewresult;
+      meta = metaData;
+    }
+  }
+  return { isOrderExists, result, meta };
 };
 
 const changeOrderStatus = async ({

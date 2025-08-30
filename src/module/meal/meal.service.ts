@@ -13,6 +13,7 @@ import { searchLogService } from "../searchLog/searchLogService";
 import { USER_ROLE } from "../user/user.const";
 import { Customer } from "../customer/customer.model";
 import { MealPlanner } from "../mealPlanner/mealPlanner.model";
+import { Rating } from "../rating/rating.model";
 
 const createMeal = async (user: JwtPayload, payload: TMeal) => {
   const { userId } = user;
@@ -199,7 +200,25 @@ const getASingleMeal = async (id: string) => {
   if (isMealExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
-  return isMealExists;
+  let feedbackResult;
+  const query: Record<string, unknown> = {
+    mealId: isMealExists?._id,
+    isDeleted: false,
+    limit: 5,
+    fields: "-mealId, -updatedAt, -isDeleted, -orderId",
+  };
+  const ratingQuery = new QueryBuilder(Rating.find(), query)
+    .filter()
+    .paginateQuery()
+    .fields();
+  const reviewresult = await ratingQuery.modelQuery.populate({
+    path: "userId",
+    select: "name profileImage",
+  });
+  if (reviewresult && reviewresult.length) {
+    feedbackResult = reviewresult;
+  }
+  return { isMealExists, feedbackResult };
 };
 
 const getCheckoutmealDetails = async (id: string, userId: string) => {

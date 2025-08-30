@@ -112,7 +112,7 @@ const addRating = async ({
 
     const result = await Meal.findByIdAndUpdate(
       isMealExists?._id,
-      { rating: avarageRating, $inc: { ratingCount: 1 } },
+      { avarageRating: avarageRating, $inc: { ratingCount: 1 } },
       { session, new: true, runValidators: true }
     );
     if (!result) {

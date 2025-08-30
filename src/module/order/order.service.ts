@@ -332,6 +332,7 @@ const getASingleOrder = async ({
 
   let result;
   let meta;
+  let isReviewExists = false;
 
   if (isOrderExists?.orderType === "once") {
     const isRating = await Rating.findOne({
@@ -342,6 +343,7 @@ const getASingleOrder = async ({
       .populate({ path: "userId", select: "name profileImage" });
     if (isRating) {
       result = isRating;
+      isReviewExists = true;
     }
   }
 
@@ -369,9 +371,10 @@ const getASingleOrder = async ({
     if (reviewresult && reviewresult.length) {
       result = reviewresult;
       meta = metaData;
+      isReviewExists = true;
     }
   }
-  return { isOrderExists, result, meta };
+  return { isOrderExists, result, meta, isReviewExists };
 };
 
 const changeOrderStatus = async ({

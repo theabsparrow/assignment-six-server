@@ -154,12 +154,17 @@ const getMyMeals = async (query: Record<string, unknown>, id: string) => {
   return { meta, result };
 };
 
-const getMyMealDetails = async (userId: string, id: string) => {
-  const isMealExists = await Meal.findById(id);
-  if (!isMealExists) {
-    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
-  }
-  if (isMealExists?.isDeleted) {
+const getMyMealDetails = async ({
+  userId,
+  id,
+  query,
+}: {
+  userId: string;
+  id: string;
+  query: Record<string, unknown>;
+}) => {
+  const isMealExists = await Meal.findById(id).select("-kitchen -updatedAt");
+  if (!isMealExists || isMealExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
   const isMealProvider = await MealProvider.findOne({ user: userId }).select(
@@ -168,25 +173,38 @@ const getMyMealDetails = async (userId: string, id: string) => {
   if (!isMealProvider) {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
-  const isKitchenExists = await Kitchen.findOne({
-    owner: isMealProvider?._id,
-  }).select("owner");
-  if (!isKitchenExists) {
-    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
-  }
-  if (
-    isMealExists?.kitchen?.toString() !== isKitchenExists?._id.toString() ||
-    isMealExists?.owner.toString() !== isMealProvider._id.toString()
-  ) {
+  if (isMealExists?.owner.toString() !== isMealProvider._id.toString()) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "you can`t visit this meal profile"
     );
   }
-  const result = await Meal.findById(id).select(
-    "-isDeleted -kitchen -owner -updatedAt"
-  );
-  return result;
+  let feedbackResult;
+  let meta;
+  const filter: Record<string, unknown> = {};
+  filter.isDeleted = false;
+  filter.mealId = isMealExists?._id;
+  query = {
+    ...query,
+    limit: 9,
+    fields: "-mealId, -updatedAt, -isDeleted, -orderId",
+    ...filter,
+  };
+  const ratingQuery = new QueryBuilder(Rating.find(), query)
+    .filter()
+    .paginateQuery()
+    .sort()
+    .fields();
+  const reviewresult = await ratingQuery.modelQuery.populate({
+    path: "userId",
+    select: "name profileImage",
+  });
+  const metaData = await ratingQuery.countTotal();
+  if (reviewresult && reviewresult.length) {
+    feedbackResult = reviewresult;
+    meta = metaData;
+  }
+  return { isMealExists, feedbackResult, meta };
 };
 
 const getASingleMeal = async (id: string) => {
@@ -204,11 +222,13 @@ const getASingleMeal = async (id: string) => {
   const query: Record<string, unknown> = {
     mealId: isMealExists?._id,
     isDeleted: false,
+    sort: "-rating",
     limit: 5,
     fields: "-mealId, -updatedAt, -isDeleted, -orderId",
   };
   const ratingQuery = new QueryBuilder(Rating.find(), query)
     .filter()
+    .sort()
     .paginateQuery()
     .fields();
   const reviewresult = await ratingQuery.modelQuery.populate({
@@ -276,17 +296,40 @@ const getCheckoutmealDetails = async (id: string, userId: string) => {
   };
 };
 
-const getAMealsProfile = async (id: string) => {
-  const result = await Meal.findById(id)
+const getAMealsProfile = async (id: string, query: Record<string, unknown>) => {
+  const isMealExists = await Meal.findById(id)
     .populate({ path: "kitchen", select: "kitchenName" })
-    .populate({ path: "owner", select: "name" });
-  if (!result) {
+    .populate({ path: "owner", select: "name" })
+    .select("-updatedAt");
+  if (!isMealExists || isMealExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "mealInfo not found");
   }
-  if (result?.isDeleted) {
-    throw new AppError(StatusCodes.NOT_FOUND, "mealInfo not found");
+  let feedbackResult;
+  let meta;
+  const filter: Record<string, unknown> = {};
+  filter.isDeleted = false;
+  filter.mealId = isMealExists?._id;
+  query = {
+    ...query,
+    limit: 9,
+    fields: "-mealId, -updatedAt, -isDeleted, -orderId",
+    ...filter,
+  };
+  const ratingQuery = new QueryBuilder(Rating.find(), query)
+    .filter()
+    .paginateQuery()
+    .sort()
+    .fields();
+  const reviewresult = await ratingQuery.modelQuery.populate({
+    path: "userId",
+    select: "name profileImage",
+  });
+  const metaData = await ratingQuery.countTotal();
+  if (reviewresult && reviewresult.length) {
+    feedbackResult = reviewresult;
+    meta = metaData;
   }
-  return result;
+  return { isMealExists, feedbackResult, meta };
 };
 
 const getFoodCategory = async () => {

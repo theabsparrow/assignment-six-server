@@ -54,8 +54,9 @@ const getMyMealDetails = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
     const user = req.user;
+    const query = req.query;
     const { userId } = user as JwtPayload;
-    const result = await mealService.getMyMealDetails(userId, id);
+    const result = await mealService.getMyMealDetails({ userId, id, query });
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
@@ -96,7 +97,8 @@ const getCheckoutmealDetails = catchAsync(
 const getAMealsProfile = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const id = req.params.id;
-    const result = await mealService.getAMealsProfile(id);
+    const query = req.query;
+    const result = await mealService.getAMealsProfile(id, query);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

@@ -361,6 +361,7 @@ const getASingleOrder = async ({
     };
     const ratingQuery = new QueryBuilder(Rating.find(), query)
       .filter()
+      .sort()
       .paginateQuery()
       .fields();
     const reviewresult = await ratingQuery.modelQuery.populate({

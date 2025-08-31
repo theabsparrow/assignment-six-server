@@ -55,6 +55,24 @@ const getMyAllSubscription = catchAsync(
   }
 );
 
+const getAllMySubscribers = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query = req.query;
+    const user = req.user;
+    const { userId } = user as JwtPayload;
+    const result = await kitchenSubscriberService.getAllMySubscribers(
+      userId,
+      query
+    );
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "subscribers are retrived successfully",
+      data: result,
+    });
+  }
+);
+
 const isSubscribedKitchen = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as JwtPayload;
@@ -78,4 +96,5 @@ export const kitchenSubscriberController = {
   removeSubscriber,
   getMyAllSubscription,
   isSubscribedKitchen,
+  getAllMySubscribers,
 };

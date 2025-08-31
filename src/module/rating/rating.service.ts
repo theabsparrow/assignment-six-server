@@ -11,6 +11,7 @@ import { Order } from "../order/order.model";
 import { JwtPayload } from "jsonwebtoken";
 import { USER_ROLE } from "../user/user.const";
 import { MealProvider } from "../mealProvider/mealProvider.model";
+import QueryBuilder from "../../builder/QueryBuilder";
 
 const addRating = async ({
   payload,
@@ -219,7 +220,41 @@ const removeRating = async (id: string, user: JwtPayload) => {
   }
 };
 
+const getMyFeedbacks = async (id: string, query: Record<string, unknown>) => {
+  const isCustomerExist = await Customer.findOne({ user: id }).select("name");
+  if (!isCustomerExist) {
+    throw new AppError(StatusCodes.NOT_FOUND, "data not found");
+  }
+  const filter: Record<string, unknown> = {};
+  filter.userId = isCustomerExist?._id;
+  filter.isDeleted = false;
+  query = {
+    ...query,
+    fields: "-deliveryNumber, -isDeleted, -updatedAt -userId",
+    ...filter,
+  };
+  const ratingQuery = new QueryBuilder(Rating.find(), query)
+    .filter()
+    .sort()
+    .paginateQuery()
+    .fields();
+  const result = await ratingQuery.modelQuery.populate({
+    path: "mealId",
+    select: "title imageUrl",
+  });
+  const meta = await ratingQuery.countTotal();
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  const totalFeedback = await Rating.countDocuments({
+    userId: isCustomerExist?._id,
+    isDeleted: false,
+  });
+  return { meta, result, totalFeedback };
+};
+
 export const ratingService = {
   addRating,
   removeRating,
+  getMyFeedbacks,
 };

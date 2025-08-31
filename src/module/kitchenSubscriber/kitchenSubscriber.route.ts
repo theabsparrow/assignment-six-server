@@ -35,6 +35,11 @@ router.get(
   ),
   kitchenSubscriberController.getMyAllSubscription
 );
+router.get(
+  "/my-subscribers",
+  authRefesh(USER_ROLE.mealProvider),
+  kitchenSubscriberController.getAllMySubscribers
+);
 
 router.get(
   "/is-kitchenSubscribed/:id",

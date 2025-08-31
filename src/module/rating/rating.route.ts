@@ -4,6 +4,7 @@ import { USER_ROLE } from "../user/user.const";
 import validateRequest from "../../middlewire/validateRequest";
 import { ratingValidation } from "./rating.validation";
 import { ratingController } from "./rating.controller";
+import { authRefesh } from "../../middlewire/authRefresh";
 
 const router = Router();
 router.post(
@@ -21,5 +22,10 @@ router.delete(
     USER_ROLE.superAdmin
   ),
   ratingController.removeRating
+);
+router.get(
+  "/my-feedbacks",
+  authRefesh(USER_ROLE.customer),
+  ratingController.getMyFeedbacks
 );
 export const ratingRoute = router;

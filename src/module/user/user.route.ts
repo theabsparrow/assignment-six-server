@@ -38,7 +38,7 @@ router.get(
 );
 router.get(
   "/user-profile/:id",
-  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin, USER_ROLE.mealProvider),
   userController.getUSerProfile
 );
 router.patch(

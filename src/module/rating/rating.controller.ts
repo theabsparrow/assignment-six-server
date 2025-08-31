@@ -38,7 +38,23 @@ const removeRating = catchAsync(
   }
 );
 
+const getMyFeedbacks = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { userId } = user;
+    const query = req.query;
+    const result = await ratingService.getMyFeedbacks(userId, query);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "feedbacks are retrived successfully",
+      data: result,
+    });
+  }
+);
+
 export const ratingController = {
   addRating,
   removeRating,
+  getMyFeedbacks,
 };

@@ -8,7 +8,9 @@ import {
   TKitchenSubscriber,
   TKitchenSybscriberQuery,
 } from "./kitchenSubscriber.interface";
-import mongoose from "mongoose";
+import mongoose, { PipelineStage } from "mongoose";
+import { MealProvider } from "../mealProvider/mealProvider.model";
+import { TQuery } from "../user/user.interface";
 
 const addSubscriber = async (user: JwtPayload, id: string) => {
   const { userId, userRole } = user;
@@ -237,6 +239,117 @@ const getMyAllSubscription = async (
   }
 };
 
+const getAllMySubscribers = async (id: string, query: TQuery) => {
+  const isMealProviderExists = await MealProvider.findOne({ user: id }).select(
+    "name isDeleted"
+  );
+  if (!isMealProviderExists || isMealProviderExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "your kitchen data not foun");
+  }
+  const isKitchenExists = await Kitchen.findOne({
+    owner: isMealProviderExists?._id,
+  }).select("kitchenName isDeleted");
+  if (!isKitchenExists || isKitchenExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "your kitchen data not foun");
+  }
+  const kitchenId = isKitchenExists?._id;
+
+  const page = Number(query?.page) || 1;
+  const limit = Number(query?.limit);
+  const skip = (page - 1) * limit;
+
+  const searchRegex = query?.searchTerm
+    ? new RegExp(query.searchTerm, "i")
+    : null;
+
+  const pipeline: PipelineStage[] = [
+    { $match: { kitchen: kitchenId } },
+
+    {
+      $lookup: {
+        from: "customers",
+        localField: "user",
+        foreignField: "user",
+        as: "customerInfo",
+      },
+    },
+
+    {
+      $lookup: {
+        from: "mealproviders",
+        localField: "user",
+        foreignField: "user",
+        as: "mealProviderInfo",
+      },
+    },
+
+    {
+      $addFields: {
+        subscriberInfo: {
+          $cond: [
+            { $gt: [{ $size: "$customerInfo" }, 0] },
+            { $arrayElemAt: ["$customerInfo", 0] },
+            { $arrayElemAt: ["$mealProviderInfo", 0] },
+          ],
+        },
+      },
+    },
+
+    ...(searchRegex
+      ? [
+          {
+            $match: {
+              "subscriberInfo.name": { $regex: searchRegex },
+            },
+          },
+        ]
+      : []),
+
+    {
+      $project: {
+        _id: 1,
+        createdAt: 1,
+        "subscriberInfo.name": 1,
+        "subscriberInfo.gender": 1,
+        "subscriberInfo._id": 1,
+      },
+    },
+
+    { $sort: { createdAt: -1 } },
+
+    {
+      $facet: {
+        metadata: [
+          { $count: "total" },
+          {
+            $addFields: {
+              page,
+              limit,
+              totalPages: {
+                $ceil: { $divide: ["$total", limit] },
+              },
+            },
+          },
+        ],
+        data: [{ $skip: skip }, { $limit: limit }],
+      },
+    },
+  ];
+  const result = await KitchenSubscriber.aggregate(pipeline);
+  const totalSubscribers = await KitchenSubscriber.countDocuments({
+    kitchen: kitchenId,
+  });
+  const mySubscribers = result[0]?.data || [];
+  const meta = result[0]?.metadata[0] || {
+    total: 0,
+    page,
+    limit,
+    totalPages: 0,
+  };
+
+  return { mySubscribers, meta, totalSubscribers };
+};
+
 const isSubscribedKitchen = async (kitchenId: string, userId: string) => {
   const isSubscribed = await KitchenSubscriber.findOne({
     kitchen: kitchenId,
@@ -256,4 +369,5 @@ export const kitchenSubscriberService = {
   removeSubscriber,
   getMyAllSubscription,
   isSubscribedKitchen,
+  getAllMySubscribers,
 };

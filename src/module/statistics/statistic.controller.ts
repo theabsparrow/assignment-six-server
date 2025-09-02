@@ -66,6 +66,17 @@ const getBlogStats = catchAsync(
     });
   }
 );
+const getOrderStatus = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await statisticService.getOrderStats();
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Order stats are retrived successfully",
+      data: result,
+    });
+  }
+);
 
 export const statsController = {
   getUsersStats,
@@ -73,4 +84,5 @@ export const statsController = {
   getKitchensStats,
   getMealStats,
   getBlogStats,
+  getOrderStatus,
 };

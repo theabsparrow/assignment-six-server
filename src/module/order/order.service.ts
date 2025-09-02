@@ -323,13 +323,13 @@ const getASingleOrder = async ({
     ];
     selectitems = "-kitchenId";
   }
+
   const isOrderExists = await Order.findById(id)
     .select(selectitems)
     .populate(populateItem);
   if (!isOrderExists || isOrderExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, "order data not found");
   }
-
   let result;
   let meta;
   let isReviewExists = false;
@@ -346,7 +346,6 @@ const getASingleOrder = async ({
       isReviewExists = true;
     }
   }
-
   if (isOrderExists?.orderType === "regular") {
     if (query.deliveryNumber) {
       query.deliveryNumber = Number(query.deliveryNumber);

@@ -6,6 +6,7 @@ import { Subscriber } from "../subscriber/subscriber.model";
 import { Kitchen } from "../kitchen/kitchen.model";
 import { Meal } from "../meal/meal.model";
 import { Blog } from "../blog/blog.model";
+import { Order } from "../order/order.model";
 
 const getUsersStats = async () => {
   const totalUsers = await User.countDocuments({ isDeleted: false });
@@ -302,10 +303,102 @@ const getAllBlogs = async () => {
   };
 };
 
+const getOrderStats = async () => {
+  const totalOrder = await Order.countDocuments({ isDeleted: false });
+  const [
+    singleOrder,
+    regularOrder,
+    manualDelivery,
+    planDelivery,
+    onlineDelivery,
+    cashOnDelivery,
+    activeOrder,
+    inActiveOrder,
+    topDeliveryOrder,
+  ] = await Promise.all([
+    Order.countDocuments({ orderType: "once" }),
+    Order.countDocuments({ orderType: "regular" }),
+    Order.countDocuments({ deliveryMode: "mealPlanner" }),
+    Order.countDocuments({ deliveryMode: "manual" }),
+    Order.countDocuments({ payment: "online" }),
+    Order.countDocuments({ payment: "cash on delivery" }),
+    Order.countDocuments({ isActive: true }),
+    Order.countDocuments({ isActive: false }),
+    Order.find({ isDeleted: false })
+      .populate({ path: "mealId", select: "title -_id" })
+      .sort({ deliveredCount: -1 })
+      .limit(5)
+      .select("deliveredCount -_id")
+      .lean(),
+  ]);
+
+  const [
+    cancel,
+    pending,
+    confirm,
+    cooking,
+    readyForPickup,
+    OutForDelivery,
+    delivered,
+  ] = await Promise.all([
+    Order.countDocuments({ status: "Cancelled" }),
+    Order.countDocuments({ status: "Pending" }),
+    Order.countDocuments({ status: "Confirmed" }),
+    Order.countDocuments({ status: "Cooking" }),
+    Order.countDocuments({ status: "ReadyForPickup" }),
+    Order.countDocuments({ status: "OutForDelivery" }),
+    Order.countDocuments({ status: "Delivered" }),
+  ]);
+
+  const fourWeeksAgo = subWeeks(new Date(), 3);
+  const newBlogLast4Weeks = await Order.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: fourWeeksAgo },
+        isDeleted: false,
+      },
+    },
+    {
+      $group: {
+        _id: { $isoWeek: "$createdAt" },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { _id: 1 },
+    },
+  ]);
+  const finalResult = mergeWeeksWithMongoData(newBlogLast4Weeks);
+  return {
+    total: totalOrder,
+    types: {
+      singleOrder,
+      regularOrder,
+      manualDelivery,
+      planDelivery,
+      onlineDelivery,
+      cashOnDelivery,
+      activeOrder,
+      inActiveOrder,
+    },
+    status: {
+      cancel,
+      pending,
+      confirm,
+      cooking,
+      readyForPickup,
+      OutForDelivery,
+      delivered,
+    },
+    topOrder: topDeliveryOrder,
+    newBlogsByWeek: finalResult,
+  };
+};
 export const statisticService = {
   getUsersStats,
   getSubsCribersStats,
   getKitchenStats,
   getMealStats,
   getAllBlogs,
+  getOrderStats,
 };

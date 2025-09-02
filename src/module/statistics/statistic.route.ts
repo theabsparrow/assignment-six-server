@@ -30,5 +30,10 @@ router.get(
   authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
   statsController.getBlogStats
 );
+router.get(
+  "/order-stats",
+  authRefesh(USER_ROLE.admin, USER_ROLE.superAdmin),
+  statsController.getOrderStatus
+);
 
 export const statsRouter = router;

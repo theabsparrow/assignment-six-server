@@ -7,7 +7,6 @@ import {
   TemailOrderStatus,
   TgetOrder,
   TOrder,
-  TOrderStatus,
 } from "./order.interface";
 import { Kitchen } from "../kitchen/kitchen.model";
 import { Customer } from "../customer/customer.model";
@@ -23,10 +22,9 @@ import { changeStatusEmailTemplate } from "../../utills/changeStatusEmail";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { User } from "../user/user.model";
 import {
-  isCustomerExists,
-  mealProviderInfo,
+  convertDate,
+  getEndDateOnInactive,
   priorityToChange,
-  userInfo,
 } from "./order.utilities";
 import { TUSerRole } from "../user/user.interface";
 import { Rating } from "../rating/rating.model";
@@ -155,23 +153,7 @@ const createOrder = async ({
     const info: TemailOrder = {
       customerName: isCustomerExist?.name,
       customerEmail: isUSerExists?.email,
-      orderDate: orderInfo?.createdAt
-        ? new Date(orderInfo?.createdAt).toLocaleString("en-US", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          })
-        : new Date().toLocaleString("en-US", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          }),
+      orderDate: convertDate(new Date(orderInfo?.createdAt as string)),
       kitchenName: isKitchenExists?.kitchenName,
       mealName: isMealExist?.title,
       totalAmount: orderInfo?.totalPrice,
@@ -377,207 +359,165 @@ const getASingleOrder = async ({
   return { isOrderExists, result, meta, isReviewExists };
 };
 
-const changeOrderStatus = async ({
+const updateOrderStatus = async ({
   user,
   id,
-  status,
+  payload,
 }: {
   user: JwtPayload;
   id: string;
-  status: TOrderStatus;
+  payload: Partial<TOrder>;
 }) => {
-  const { userRole, userId } = user;
-  priorityToChange(userRole, status);
-  const userData = await userInfo(userId);
-  const isOrderExists = await Order.findById(id);
-  const customerExists = await isCustomerExists(
-    isOrderExists?.customerId.toString() as string
-  );
-  const info: Partial<TemailOrderStatus> = {};
-  info.customerName = customerExists?.name;
-  info.customerEmail = customerExists?.email;
-  const mealName = await Meal.findById(isOrderExists?.mealId.toString());
-
-  if (
-    userRole === USER_ROLE.customer &&
-    isOrderExists?.customerId.toString() !== userData?.id.toString()
-  ) {
-    throw new AppError(
-      StatusCodes.UNAUTHORIZED,
-      "you can`t change this order status"
-    );
-  }
-
-  if (userRole === USER_ROLE.mealProvider) {
-    const kitchenInfo = await mealProviderInfo(userId);
-    if (isOrderExists?.kitchenId.toString() !== kitchenInfo?._id.toString()) {
-      throw new AppError(
-        StatusCodes.UNAUTHORIZED,
-        "you can`t change the status of this order"
-      );
-    }
-    info.kitchenName = kitchenInfo?.kitchenName;
-  }
-
-  const session = await mongoose.startSession();
-  try {
-    session.startTransaction();
-    if (status === "Cancelled") {
-      const result = await Order.findByIdAndUpdate(
-        id,
-        { status: status, isActive: false },
-        { session, new: true, runValidators: true }
-      );
-      if (!result) {
-        throw new AppError(
-          StatusCodes.BAD_REQUEST,
-          `faild to ${status} the order`
-        );
-      }
-    } else {
-      const result = await Order.findByIdAndUpdate(
-        id,
-        { status: status },
-        { session, new: true, runValidators: true }
-      );
-      if (!result) {
-        throw new AppError(
-          StatusCodes.BAD_REQUEST,
-          `faild to ${status} the order`
-        );
-      }
-    }
-
-    if (
-      userRole === USER_ROLE.admin ||
-      userRole === USER_ROLE.mealProvider ||
-      userRole === USER_ROLE.superAdmin
-    ) {
-      if (status === "Cancelled" || status === "Confirmed") {
-        info.mealName = mealName?.title;
-        info.orderStatus = status;
-        info.orderDate = isOrderExists?.createdAt;
-        info.totalAmount = isOrderExists?.totalPrice;
-        const link = `${config.client_certain_route}/meals}`;
-        const html = changeStatusEmailTemplate(link, info as TemailOrderStatus);
-        const emailRespnse = await sendEmail({
-          to: info?.customerEmail as string,
-          html,
-          subject: `${mealName?.title} order is placed`,
-          text: "check this order to know more about this",
-        });
-        if (!emailRespnse.accepted.length) {
-          throw new AppError(
-            StatusCodes.BAD_REQUEST,
-            `faild to send email to the customer`
-          );
-        }
-      }
-    }
-    await session.commitTransaction();
-    await session.endSession();
-    const result = await Order.findById(isOrderExists?._id);
-    return result;
-  } catch (err: any) {
-    await session.abortTransaction();
-    await session.endSession();
-    throw new AppError(StatusCodes.BAD_REQUEST, err);
-  }
-};
-
-const updateDeliveryCount = async (id: string, user: JwtPayload) => {
-  const { userId, userRole } = user;
-  const isUSerExists = await User.findById(userId);
-  if (!isUSerExists) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
-  }
+  const { userRole: role, userId } = user;
+  // check if the user verified or not
+  const isUSerExists = await User.findById(userId).select("verifiedWithEmail");
   if (!isUSerExists?.verifiedWithEmail) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "you need to verify your email at first"
     );
   }
-  const isOrderExists = await Order.findById(id).select(
-    "isDeleted isActive status deliveredCount orderType kitchenId"
+  const isOrderExists = await priorityToChange({ user, payload, id });
+  // extract meal information
+  const isMealExists = await Meal.findById(isOrderExists?.mealId).select(
+    "title"
   );
-  if (!isOrderExists) {
-    throw new AppError(StatusCodes.NOT_FOUND, "order data not found");
-  }
-  if (isOrderExists?.isDeleted) {
-    throw new AppError(StatusCodes.NOT_FOUND, "order data not found");
-  }
-  if (!isOrderExists?.isActive) {
-    throw new AppError(
-      StatusCodes.CONFLICT,
-      "this order is already deactivate"
-    );
-  }
-  if (isOrderExists?.status !== "Confirmed") {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "you need to accept the order to update the order count"
-    );
-  }
+  // extract customer information
+  const isCustomerExist = await Customer.findById(
+    isOrderExists?.customerId
+  ).select("name user");
+  const customerEmail = await User.findById(isCustomerExist?.user).select(
+    "email"
+  );
 
-  if (userRole === USER_ROLE.mealProvider) {
-    const isMealProviderExist = await MealProvider.findOne({
-      user: userId,
-    }).select("user");
-    if (!isMealProviderExist) {
-      throw new AppError(StatusCodes.NOT_FOUND, "customer data not found");
-    }
-    const isKitchenExists = await Kitchen.findOne({
-      owner: isMealProviderExist?._id,
-    }).select("owner");
-    if (!isKitchenExists) {
-      throw new AppError(StatusCodes.NOT_FOUND, "kitchen data not found");
-    }
-    if (
-      isOrderExists?.kitchenId.toString() !== isKitchenExists?._id.toString()
-    ) {
-      throw new AppError(
-        StatusCodes.UNAUTHORIZED,
-        "you can`t change the status of this order"
-      );
-    }
-  }
+  // extract mealProvider information
+  const isKitchen = await Kitchen.findById(isOrderExists?.kitchenId).select(
+    "kitchenName owner"
+  );
+  const isProvider = await MealProvider.findById(isKitchen?.owner).select(
+    "name user"
+  );
+  const isUser = await User.findById(isProvider?.user).select("email");
+
+  // transaction roleback starts
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    const deliveredCount = (isOrderExists?.deliveredCount as number) + 1;
-    if (isOrderExists?.orderType === "once") {
-      const payload = {
-        deliveredCount: deliveredCount,
-        isActive: false,
-        status: "Delivered",
-      };
-      const result = await Order.findByIdAndUpdate(
-        isOrderExists?._id,
-        payload,
+    // update operation starts
+    let result: TOrder | null = null;
+    // update order activity
+    if (
+      isOrderExists?.orderType === "regular" &&
+      payload.isActive !== undefined &&
+      payload.isActive === false
+    ) {
+      payload.endDate = getEndDateOnInactive(isOrderExists?.deliveryDays);
+      result = await Order.findByIdAndUpdate(
+        id,
+        { payload },
         { session, new: true, runValidators: true }
       );
       if (!result) {
         throw new AppError(
           StatusCodes.BAD_REQUEST,
-          `faild to update order count`
+          `faild to update the order info`
+        );
+      }
+    }
+    // update order status and increate delivery count
+    if (
+      isOrderExists?.orderType === "regular" &&
+      payload?.status &&
+      payload?.status === "Delivered"
+    ) {
+      result = await Order.findByIdAndUpdate(
+        id,
+        {
+          ...payload,
+          $inc: { deliveredCount: 1 },
+        },
+        { session, new: true, runValidators: true }
+      );
+      if (!result) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          `faild to update the order status`
         );
       }
     } else {
-      const result = await Order.findByIdAndUpdate(
-        isOrderExists?._id,
-        { deliveredCount: deliveredCount },
+      result = await Order.findByIdAndUpdate(
+        id,
+        { payload },
         { session, new: true, runValidators: true }
       );
       if (!result) {
         throw new AppError(
           StatusCodes.BAD_REQUEST,
-          `faild to update order count`
+          `faild to update the order info`
+        );
+      }
+    }
+
+    // email send from mealprovider end
+    if (role === USER_ROLE.mealProvider && payload?.status) {
+      const info: TemailOrderStatus = {
+        mealName: isMealExists?.title as string,
+        orderStatus: payload?.status,
+        orderDate: convertDate(new Date(isOrderExists?.createdAt as string)),
+        totalAmount: isOrderExists?.totalPrice as number,
+        customerEmail: customerEmail?.email as string,
+        customerName: isCustomerExist?.name as string,
+        kitchenName: isKitchen?.kitchenName as string,
+      };
+
+      const link = `${config.client_certain_route}/meals}`;
+      const html = changeStatusEmailTemplate(link, info as TemailOrderStatus);
+      const emailRespnse = await sendEmail({
+        to: info?.customerEmail as string,
+        html,
+        subject: `${isMealExists?.title} order is placed`,
+        text: "check this order to know more about this",
+      });
+      if (!emailRespnse.accepted.length) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          `faild to send email to the customer`
+        );
+      }
+    }
+    // email send from customer end
+    if (
+      role === USER_ROLE.customer &&
+      payload?.status &&
+      payload?.status == "Cancelled"
+    ) {
+      const info: TemailOrderStatus = {
+        mealName: isMealExists?.title as string,
+        orderStatus: payload?.status,
+        orderDate: convertDate(new Date(isOrderExists?.createdAt as string)),
+        totalAmount: isOrderExists?.totalPrice as number,
+        customerEmail: isUser?.email as string,
+        customerName: isProvider?.name as string,
+        kitchenName: isKitchen?.kitchenName as string,
+      };
+
+      const link = `${config.client_certain_route}/meals}`;
+      const html = changeStatusEmailTemplate(link, info as TemailOrderStatus);
+      const emailRespnse = await sendEmail({
+        to: info?.customerEmail as string,
+        html,
+        subject: `Information about your order ${isMealExists?.title}`,
+        text: "check this order to know more about this",
+      });
+      if (!emailRespnse.accepted.length) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          `faild to send email to the customer`
         );
       }
     }
     await session.commitTransaction();
     await session.endSession();
-    const result = await Order.findById(isOrderExists?._id);
     return result;
   } catch (err: any) {
     await session.abortTransaction();
@@ -651,8 +591,7 @@ const deleteOrder = async (id: string, user: JwtPayload) => {
 
 export const orderService = {
   createOrder,
-  changeOrderStatus,
-  updateDeliveryCount,
+  updateOrderStatus,
   getMyOrder,
   deleteOrder,
   getASingleOrder,

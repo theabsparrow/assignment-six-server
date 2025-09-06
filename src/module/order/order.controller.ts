@@ -24,21 +24,6 @@ const createOrder = catchAsync(
   }
 );
 
-const changeOrderStatus = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user;
-    const { status } = req.body;
-    const id = req.params.id;
-    const result = await orderService.changeOrderStatus({ user, id, status });
-    sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.CREATED,
-      message: "order status changed successfully",
-      data: result,
-    });
-  }
-);
-
 const getMyOrder = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
@@ -69,15 +54,16 @@ const getASingleOrder = catchAsync(
   }
 );
 
-const updateDeliveryCount = catchAsync(
+const updateOrderStatus = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const id = req.params.id;
     const user = req.user;
-    const result = await orderService.updateDeliveryCount(id, user);
+    const payload = req.body;
+    const id = req.params.id;
+    const result = await orderService.updateOrderStatus({ user, id, payload });
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.CREATED,
-      message: "delivery count updated successfully",
+      message: "order status changed successfully",
       data: result,
     });
   }
@@ -99,8 +85,7 @@ const deleteOrder = catchAsync(
 
 export const orderController = {
   createOrder,
-  changeOrderStatus,
-  updateDeliveryCount,
+  updateOrderStatus,
   getMyOrder,
   deleteOrder,
   getASingleOrder,

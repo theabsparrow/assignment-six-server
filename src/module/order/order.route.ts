@@ -34,7 +34,7 @@ router.get(
   orderController.getASingleOrder
 );
 router.patch(
-  "/change-status/:id",
+  "/update-order/:id",
   auth(
     USER_ROLE.admin,
     USER_ROLE.customer,
@@ -42,12 +42,7 @@ router.patch(
     USER_ROLE.superAdmin
   ),
   validateRequest(orderValidation.changeOrderStatusValidationSchema),
-  orderController.changeOrderStatus
-);
-router.patch(
-  "/update-deliveryCount/:id",
-  auth(USER_ROLE.admin, USER_ROLE.mealProvider, USER_ROLE.superAdmin),
-  orderController.updateDeliveryCount
+  orderController.updateOrderStatus
 );
 router.delete(
   "/delete-order/:id",

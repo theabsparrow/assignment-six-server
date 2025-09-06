@@ -35,10 +35,21 @@ export const changeStatusEmailTemplate = (
       .status {
         font-size: 18px;
         font-weight: bold;
-        color: {{statusColor}};
         margin: 20px 0;
         text-align: center;
+        padding: 6px 14px;
+        border-radius: 20px;
+        display: inline-block;
       }
+      /* Status colors */
+      .status.Pending { background: #e9ecef; color: #495057; }
+      .status.Confirmed { background: #cfe2ff; color: #084298; }
+      .status.Cooking { background: #ffe5d0; color: #d9480f; }
+      .status.ReadyForPickup { background: #d1fae5; color: #065f46; }
+      .status.OutForDelivery { background: #cff4fc; color: #055160; }
+      .status.Delivered { background: #d1e7dd; color: #0f5132; }
+      .status.Cancelled { background: #f8d7da; color: #842029; }
+
       .order-details {
         background-color: #f7fafc;
         padding: 15px 20px;
@@ -70,38 +81,69 @@ export const changeStatusEmailTemplate = (
   <body>
     <div class="container">
       <div class="header">
-        <h2>🍽️ Your Order Status Has Been Updated</h2>
+        <h2>🍽️ Order Status Update</h2>
       </div>
 
       <p>Hi <strong>${info?.customerName}</strong>,</p>
-      <p>
-        Your order for <strong>"${info?.mealName}"</strong> has been 
-        <span class="status">${info?.orderStatus}</span>.
-      </p>
+      <p>Your order for <strong>"${
+        info?.mealName
+      }"</strong> has been updated to:</p>
 
-      <div class="order-details">
-        <p><strong>Order Date:</strong> ${info?.orderDate}</p>
-        <p><strong>Meal Provider:</strong> ${info.kitchenName}</p>
-        <li><strong>Total Amount:</strong> ${info?.totalAmount}</li>
+      <!-- Status Badge -->
+      <div class="status ${info?.orderStatus}">
+        ${info?.orderStatus}
       </div>
 
+      <!-- Order Details -->
+      <div class="order-details">
+        <p><strong>📅 Order Date:</strong> ${info?.orderDate}</p>
+        <p><strong>👨‍🍳 Meal Provider:</strong> ${info?.kitchenName}</p>
+        <p><strong>💰 Total Amount:</strong> ${info?.totalAmount}</p>
+      </div>
+
+      <!-- Dynamic Messages -->
       ${
-        info?.orderDate === "Confirmed"
-          ? `<p>Thank you for choosing DailyDish! Your meal is being prepared and will be delivered as scheduled.</p>`
+        info?.orderStatus === "Confirmed"
+          ? `<p>✅ Thank you for choosing DailyDish! Your meal is confirmed and will be prepared on schedule.</p>`
           : ""
       }
 
-        ${
-          info?.orderDate === "Cancelled"
-            ? `<p>We're sorry to inform you that your order was cancelled by the provider. You can explore other meals available on our platform.</p>
-            <a href="${link}" class="btn">Browse More Meals</a>`
-            : ""
-        }
+      ${
+        info?.orderStatus === "Cooking"
+          ? `<p>👨‍🍳 Your meal is being cooked with care. It will be ready soon.</p>`
+          : ""
+      }
+
+      ${
+        info?.orderStatus === "ReadyForPickup"
+          ? `<p>📦 Your meal is ready for pickup. Please collect it at the scheduled time.</p>`
+          : ""
+      }
+
+      ${
+        info?.orderStatus === "OutForDelivery"
+          ? `<p>🚚 Your meal is on its way! Expect delivery shortly.</p>`
+          : ""
+      }
+
+      ${
+        info?.orderStatus === "Delivered"
+          ? `<p>🥳 Your meal has been delivered. We hope you enjoy it!</p>`
+          : ""
+      }
+
+      ${
+        info?.orderStatus === "Cancelled"
+          ? `<p>❌ Unfortunately, your order was cancelled. You can explore other delicious meals available on our platform.</p>
+             <div style="text-align: center;">
+               <a href="${link}" class="btn">Browse More Meals</a>
+             </div>`
+          : ""
+      }
 
       <div class="footer">
-          &copy; ${new Date().getFullYear()} Daily Dish — All rights reserved.
-        </div>
+        &copy; ${new Date().getFullYear()} Daily Dish — All rights reserved.
+      </div>
     </div>
   </body>
-</html>
-`;
+</html>`;

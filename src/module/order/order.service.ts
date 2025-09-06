@@ -398,32 +398,15 @@ const updateOrderStatus = async ({
     "name user"
   );
   const isUser = await User.findById(isProvider?.user).select("email");
-
+  if (isOrderExists?.orderType === "regular" && payload.isActive === false) {
+    payload.endDate = getEndDateOnInactive(isOrderExists?.deliveryDays);
+  }
   // transaction roleback starts
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    // update operation starts
     let result: TOrder | null = null;
-    // update order activity
-    if (
-      isOrderExists?.orderType === "regular" &&
-      payload.isActive !== undefined &&
-      payload.isActive === false
-    ) {
-      payload.endDate = getEndDateOnInactive(isOrderExists?.deliveryDays);
-      result = await Order.findByIdAndUpdate(
-        id,
-        { payload },
-        { session, new: true, runValidators: true }
-      );
-      if (!result) {
-        throw new AppError(
-          StatusCodes.BAD_REQUEST,
-          `faild to update the order info`
-        );
-      }
-    }
+
     // update order status and increate delivery count
     if (
       isOrderExists?.orderType === "regular" &&
@@ -445,11 +428,12 @@ const updateOrderStatus = async ({
         );
       }
     } else {
-      result = await Order.findByIdAndUpdate(
-        id,
-        { payload },
-        { session, new: true, runValidators: true }
-      );
+      result = await Order.findByIdAndUpdate(id, payload, {
+        session,
+        new: true,
+        runValidators: true,
+      });
+
       if (!result) {
         throw new AppError(
           StatusCodes.BAD_REQUEST,

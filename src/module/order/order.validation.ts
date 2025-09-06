@@ -25,10 +25,21 @@ const orderValidationSchema = z.object({
   payment: z.enum([...paymentMethod] as [string, ...string[]]),
 });
 
-const changeOrderStatusValidationSchema = z.object({
-  status: z.enum([...orderStatus] as [string, ...string[]]),
+const updateOrderValidationSchema = z.object({
+  status: z.enum([...orderStatus] as [string, ...string[]]).optional(),
+  note: z
+    .string()
+    .min(10, { message: "notes should be at least 10 character" })
+    .max(200, { message: "notes can`t be more than 200 character" })
+    .optional(),
+  isActive: z
+    .boolean({
+      invalid_type_error: "isactive should be boolean",
+      required_error: "Order activity is required",
+    })
+    .optional(),
 });
 export const orderValidation = {
   orderValidationSchema,
-  changeOrderStatusValidationSchema,
+  updateOrderValidationSchema,
 };

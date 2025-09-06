@@ -41,7 +41,7 @@ router.patch(
     USER_ROLE.mealProvider,
     USER_ROLE.superAdmin
   ),
-  validateRequest(orderValidation.changeOrderStatusValidationSchema),
+  validateRequest(orderValidation.updateOrderValidationSchema),
   orderController.updateOrderStatus
 );
 router.delete(

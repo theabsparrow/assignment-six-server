@@ -143,7 +143,7 @@ export const priorityToChange = async ({
 
   // check if the note only can be changed by the customer
   if (
-    (role === USER_ROLE.customer ||
+    (role === USER_ROLE.mealProvider ||
       role === USER_ROLE.admin ||
       role === USER_ROLE.superAdmin) &&
     payload?.note
@@ -153,7 +153,7 @@ export const priorityToChange = async ({
 
   // check order existance
   const isOrderExists = await Order.findById(id).select(
-    "kitchenId customerId mealId status isActive orderType isDeleted deliveredCount createdAt "
+    "kitchenId customerId mealId status isActive orderType isDeleted deliveredCount deliveryDays "
   );
   if (!isOrderExists || isOrderExists?.isDeleted) {
     throw new AppError(StatusCodes.NOT_FOUND, `this order doesn't exists`);
@@ -242,11 +242,15 @@ export const priorityToChange = async ({
   }
 
   // check if the same activity status is coming
-  if (isOrderExists?.isActive === payload?.isActive) {
-    throw new AppError(
-      StatusCodes.CONFLICT,
-      `the order is already ${isOrderExists?.isActive ? "Active" : "isActive"}`
-    );
+  if (payload?.isActive !== undefined) {
+    if (isOrderExists?.isActive === payload?.isActive) {
+      throw new AppError(
+        StatusCodes.CONFLICT,
+        `the order is already ${
+          isOrderExists?.isActive ? "Active" : "inActive"
+        }`
+      );
+    }
   }
 
   // check if the regular type order is inactive then can`t change the status

@@ -158,7 +158,7 @@ const createOrder = async ({
       mealName: isMealExist?.title,
       totalAmount: orderInfo?.totalPrice,
     };
-    const link = `${config.client_certain_route}/mealProvider/${result?._id}`;
+    const link = `${config.client_certain_route}/mealProvider/myOrders/${result?._id}`;
     const html = orderEmailTemplate(link, info);
     await sendEmail({
       to: (providerInfo.user as { _id: string; email: string }).email,
@@ -405,7 +405,7 @@ const updateOrderStatus = async ({
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-    let result: TOrder | null = null;
+    let result;
 
     // update order status and increate delivery count
     if (
@@ -454,7 +454,7 @@ const updateOrderStatus = async ({
         kitchenName: isKitchen?.kitchenName as string,
       };
 
-      const link = `${config.client_certain_route}/meals}`;
+      const link = `${config.client_certain_route}/user/myOrders/${result?._id}}`;
       const html = changeStatusEmailTemplate(link, info as TemailOrderStatus);
       const emailRespnse = await sendEmail({
         to: info?.customerEmail as string,
@@ -485,7 +485,7 @@ const updateOrderStatus = async ({
         kitchenName: isKitchen?.kitchenName as string,
       };
 
-      const link = `${config.client_certain_route}/meals}`;
+      const link = `${config.client_certain_route}/mealProvider/myOrders/${result?._id}}`;
       const html = changeStatusEmailTemplate(link, info as TemailOrderStatus);
       const emailRespnse = await sendEmail({
         to: info?.customerEmail as string,

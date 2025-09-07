@@ -14,7 +14,7 @@ const corsOption = {
     "http://localhost:3000",
     "http://localhost:5173",
     "http://localhost:5174",
-    "https://mealbx-client.vercel.app",
+    config.client_certain_route as string,
   ],
   credentials: true,
 };

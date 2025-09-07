@@ -22,7 +22,7 @@ This is an advance backend application with rest apis built with the powerfull t
 - Create, read, update, and delete order.
 - Create, read, update, and delete kitchen.
 - Create, read, update, and delete meal planer.
-- Search Cars by `title`.
+- Search meals by `title`.
 - Tracking the order data when creating an order with the total price.
 
 ### **Meal Order Management**
@@ -30,10 +30,6 @@ This is an advance backend application with rest apis built with the powerfull t
 - Place orders for Cars with real-time stock updates.
 - Automatically calculate total price for each order depending on the quantity of the meal.
 - Manage customer details by collection email and order quantities with the detail of meal id and total price.
-
-### **Revenue Tracking**
-
-- Calculate total revenue from all orders using MongoDB aggregation.
 
 ### **Error Handling**
 
@@ -48,7 +44,7 @@ This is an advance backend application with rest apis built with the powerfull t
 - **Language:** TypeScript
 - **Backend technology:** Node.js,
 - **Framework:** Express.js
-- **Database:** MongoDB with the library Mongoose
+- **Database:** MongoDB with the ORM Mongoose
 - **Validation:** Zod Validation
 - **API Testing:** Postman
 - **Deployment:** vercel
@@ -70,13 +66,36 @@ git clone https://github.com/theabsparrow/assignment-six-server.git
    ```
 
 3. **Set Up Environment Variables:**  
-   Create a `.env` file in the root directory and add the credentials in the .env.examle file
+    Create a `.env` file in the root directory and add the credentials in the .env.examle file
+
+   ```.env
+   DATABASE_URL=your-database-url
+   PORT=5000
+   NODE_ENV=development-or-production
+   JWT_ACCESS_SECRET=jwt-secret
+   JWT_REFRESH_SECRET=jwt-refresh-secret
+   JWT_REFRESH1_SECRET=jwt-refresh1-secret
+   JWT_ACCESS_EXPIRES_IN=10d
+   JWT_REFRESH_EXPIRES_IN=1y
+   JWT_REFRESH1_EXPIRES_IN=2m
+   BCRYPT_SALT_ROUND=put-bcrypt-salt-round
+   EMAIL_APP_PASSWORD=app-pasword
+   EMAIL_SENT_FROM=email
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SUPER_ADMIN_EMAIL=email
+   SUPER_ADMIN_PHONE=phone
+   SUPER_ADMIN_PASSWORD=pasword
+   SUPER_ADMIN_ROLE=superAdmin
+   CLIENT_CERTAIN_ROUTE=http://localhost:3000
+
+   ```
 
 4. **Run the Server:**
 
-   ```bash
-   npm run dev
-   ```
+```bash
+npm run dev
+```
 
 5. **build the Server after completing:**
    ```bash

@@ -1,6 +1,5 @@
 import { StatusCodes } from "http-status-codes";
 import QueryBuilder from "../../builder/QueryBuilder";
-import { io } from "../../server";
 import { KitchenSubscriber } from "../kitchenSubscriber/kitchenSubscriber.model";
 import { Notification } from "./notification.model";
 import AppError from "../../error/AppError";
@@ -9,6 +8,7 @@ import {
   TChangeOrderStatusNotification,
   TKitchenSubscriberNotification,
 } from "./notification.interface";
+import { io } from "../../app";
 
 const notifyKitchenSubscribers = async ({
   kitchenId,

@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { TKitchen } from "./kitchen.interface";
-import { foodPreferance, mealTime, weekDays } from "./kitchen.const";
+import { foodPreferance } from "./kitchen.const";
 
 const KitchenSchema = new Schema<TKitchen>(
   {
@@ -45,16 +45,6 @@ const KitchenSchema = new Schema<TKitchen>(
     licenseOrCertificate: {
       type: String,
       default: "",
-    },
-    mealTimePerDay: {
-      type: [String],
-      enum: mealTime,
-      required: [true, "meal time is required"],
-    },
-    cookingDays: {
-      type: [String],
-      enum: weekDays,
-      required: [true, "cooking day is required"],
     },
     specialEquipments: {
       type: [String],

@@ -1,13 +1,8 @@
 import { Types } from "mongoose";
 import { TDietaryPreference } from "../mealPlanner/mealPlanner.interface";
-import {
-  FoodPreferenceOption,
-  TCookingDay,
-  TMealTime,
-} from "../kitchen/kitchen.interface";
+import { FoodPreferenceOption } from "../kitchen/kitchen.interface";
 import { TAlergies } from "../customer/customer.interface";
 
-export type TFoodCategory = TMealTime | "Snack";
 export type TcuisineType =
   | "Bengali"
   | "Indian"
@@ -25,7 +20,37 @@ export type TcuisineType =
   | "Japanese"
   | "Korean";
 
+export type TMealTime =
+  | "Breakfast"
+  | "Brunch"
+  | "Lunch"
+  | "Snack"
+  | "Dinner"
+  | "Supper"
+  | "Tea Time"
+  | "Midnight Snack";
+
+export type TFoodCategory =
+  | TMealTime
+  | "Appetizer"
+  | "Dessert"
+  | "Beverage"
+  | "Side Dish"
+  | "Sea Food"
+  | "Street Food & Fast Food"
+  | "Healthy Meal";
+
+export type TMealDay =
+  | "Sunday"
+  | "Monday"
+  | "Tuesday"
+  | "Wednesday"
+  | "Thursday"
+  | "Friday"
+  | "Saturday";
+
 export type TPortionSize = "Small" | "Medium" | "Large";
+
 export type TMeal = {
   kitchen: Types.ObjectId;
   owner: Types.ObjectId;
@@ -42,7 +67,7 @@ export type TMeal = {
   avarageRating: number;
   ratingCount: number;
   imageUrl: string;
-  availableDays: TCookingDay[];
+  availableDays: TMealDay[];
   availableTime: TMealTime[];
   isAvailable: boolean;
   isDeleted: boolean;
@@ -59,8 +84,8 @@ export interface TExtendedMeals extends TMeal {
   removeIngredients: string[];
   addAllergies: TAlergies[];
   removeAllergies: TAlergies[];
-  addAvailableDays: TCookingDay[];
-  removeAvailableDays: TCookingDay[];
+  addAvailableDays: TMealDay[];
+  removeAvailableDays: TMealDay[];
   addAvailableTime: TMealTime[];
   removeAvailableTime: TMealTime[];
 }

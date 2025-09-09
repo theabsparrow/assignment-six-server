@@ -1,8 +1,14 @@
 import { z } from "zod";
 import { diateryPreference } from "../mealPlanner/mealPlanner.const";
-import { cuisineType, foodCategory, portionSize } from "./meal.const";
+import {
+  cuisineType,
+  foodCategory,
+  mealTime,
+  portionSize,
+  weekDays,
+} from "./meal.const";
 import { allergyOptions } from "../customer/customer.const";
-import { foodPreferance, mealTime, weekDays } from "../kitchen/kitchen.const";
+import { foodPreferance } from "../kitchen/kitchen.const";
 
 const mealValidationSchema = z.object({
   title: z.string().min(1, "Meal title is required"),

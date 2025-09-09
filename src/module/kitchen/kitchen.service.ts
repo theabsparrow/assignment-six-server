@@ -252,10 +252,6 @@ const updateKitchen = async ({
   const {
     addFoodPreference,
     removeFoodPreference,
-    addMealTimePerDay,
-    removeMealTimePerDay,
-    addCookingDays,
-    removeCookingDays,
     addSpecialEquipments,
     removeSpecialEquipments,
     ...remainingData
@@ -287,48 +283,6 @@ const updateKitchen = async ({
       const updated = await Kitchen.findByIdAndUpdate(
         id,
         { $addToSet: { foodPreference: { $each: addFoodPreference } } },
-        { session, new: true, runValidators: true }
-      );
-      if (!updated) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
-      }
-    }
-    // meal time per day
-    if (removeMealTimePerDay && removeMealTimePerDay.length > 0) {
-      const updated = await Kitchen.findByIdAndUpdate(
-        id,
-        { $pull: { mealTimePerDay: { $in: removeMealTimePerDay } } },
-        { session, new: true, runValidators: true }
-      );
-      if (!updated) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
-      }
-    }
-    if (addMealTimePerDay && addMealTimePerDay.length > 0) {
-      const updated = await Kitchen.findByIdAndUpdate(
-        id,
-        { $addToSet: { mealTimePerDay: { $each: addMealTimePerDay } } },
-        { session, new: true, runValidators: true }
-      );
-      if (!updated) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
-      }
-    }
-    // cooking day
-    if (removeCookingDays && removeCookingDays.length > 0) {
-      const updated = await Kitchen.findByIdAndUpdate(
-        id,
-        { $pull: { cookingDays: { $in: removeCookingDays } } },
-        { session, new: true, runValidators: true }
-      );
-      if (!updated) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "faild to update data");
-      }
-    }
-    if (addCookingDays && addCookingDays.length > 0) {
-      const updated = await Kitchen.findByIdAndUpdate(
-        id,
-        { $addToSet: { cookingDays: { $each: addCookingDays } } },
         { session, new: true, runValidators: true }
       );
       if (!updated) {

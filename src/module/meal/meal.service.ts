@@ -14,10 +14,11 @@ import { USER_ROLE } from "../user/user.const";
 import { Customer } from "../customer/customer.model";
 import { MealPlanner } from "../mealPlanner/mealPlanner.model";
 import { Rating } from "../rating/rating.model";
+import { notificationService } from "../notification/notification.service";
 
 const createMeal = async (user: JwtPayload, payload: TMeal) => {
   const { userId } = user;
-  const isUSerExists = await User.findById(userId);
+  const isUSerExists = await User.findById(userId).select("verifiedWithEmail");
   if (!isUSerExists) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create a kitchen");
   }
@@ -35,7 +36,7 @@ const createMeal = async (user: JwtPayload, payload: TMeal) => {
   }
   const isKitchenExists = await Kitchen.findOne({
     owner: isMealProviderExists?._id,
-  }).select("_id");
+  }).select("kitchenName");
   if (!isKitchenExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "faild to create meal");
   }
@@ -45,6 +46,12 @@ const createMeal = async (user: JwtPayload, payload: TMeal) => {
   if (!result) {
     throw new AppError(StatusCodes.BAD_REQUEST, "faild to create meal");
   }
+
+  await notificationService.notifyKitchenSubscribers({
+    kitchenId: isKitchenExists?._id.toString(),
+    kitchenName: isKitchenExists?.kitchenName,
+    mealId: result._id?.toString(),
+  });
   return result;
 };
 

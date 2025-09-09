@@ -28,6 +28,7 @@ import {
 } from "./order.utilities";
 import { TUSerRole } from "../user/user.interface";
 import { Rating } from "../rating/rating.model";
+import { notificationService } from "../notification/notification.service";
 
 const createOrder = async ({
   id,
@@ -442,7 +443,7 @@ const updateOrderStatus = async ({
       }
     }
 
-    // email send from mealprovider end
+    // email and notification sent from mealprovider end
     if (role === USER_ROLE.mealProvider && payload?.status) {
       const info: TemailOrderStatus = {
         mealName: isMealExists?.title as string,
@@ -468,6 +469,12 @@ const updateOrderStatus = async ({
           `faild to send email to the customer`
         );
       }
+      await notificationService.notifyCustomerForOrderStatus({
+        mealName: isMealExists?.title as string,
+        orderId: result?._id.toString(),
+        userId: customerEmail?._id.toString() as string,
+        status: result?.status,
+      });
     }
     // email send from customer end
     if (

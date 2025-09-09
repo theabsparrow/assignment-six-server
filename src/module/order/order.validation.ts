@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { mealTime, weekDays } from "../kitchen/kitchen.const";
 import {
   deliveryMode,
   orderStatus,
   orderType,
   paymentMethod,
 } from "./order.const";
+import { mealTime, weekDays } from "../meal/meal.const";
 
 const orderValidationSchema = z.object({
   quantity: z.number().min(1, "Quantity must be at least 1"),

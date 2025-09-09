@@ -1,9 +1,6 @@
 import { Types } from "mongoose";
-import {
-  FoodPreferenceOption,
-  TCookingDay,
-  TMealTime,
-} from "../kitchen/kitchen.interface";
+import { FoodPreferenceOption } from "../kitchen/kitchen.interface";
+import { TMealDay, TMealTime } from "../meal/meal.interface";
 
 export type TDietaryPreference =
   | "Vegan"
@@ -29,7 +26,7 @@ export type TMealPlanner = {
   title: string;
   customer: Types.ObjectId;
   preferredMealTime: TMealTime[];
-  preferredMealDay: TCookingDay[];
+  preferredMealDay: TMealDay[];
   foodPreference: FoodPreferenceOption;
   dietaryPreferences: TDietaryPreference[];
   notes: string;
@@ -38,10 +35,10 @@ export type TMealPlanner = {
 };
 
 export interface TExtendedMealPlanner extends TMealPlanner {
-  addPreferredMealTime: FoodPreferenceOption[];
-  removePreferredMealTime: FoodPreferenceOption[];
-  addPreferredMealDay: TCookingDay[];
-  removePreferredMealDay: TCookingDay[];
+  addPreferredMealTime: TMealTime[];
+  removePreferredMealTime: TMealTime[];
+  addPreferredMealDay: TMealDay[];
+  removePreferredMealDay: TMealDay[];
   addDietaryPreferences: TDietaryPreference[];
   removeDietaryPreferences: TDietaryPreference[];
 }

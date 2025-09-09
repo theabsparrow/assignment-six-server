@@ -9,9 +9,9 @@ import { USER_ROLE } from "../user/user.const";
 import { Meal } from "../meal/meal.model";
 import { TOrder } from "./order.interface";
 import { JwtPayload } from "jsonwebtoken";
-import { TCookingDay } from "../kitchen/kitchen.interface";
 import { addDays, startOfWeek } from "date-fns";
 import { dayMap } from "./order.const";
+import { TMealDay } from "../meal/meal.interface";
 
 export const isKitchen = async (id: string) => {
   const isKitchenExists = await Kitchen.findById(id).select(
@@ -332,14 +332,14 @@ export const convertDate = (date: Date) => {
   return dateTime;
 };
 
-const getEndDate = (baseDate: Date, deliveryDays: TCookingDay[]) => {
+const getEndDate = (baseDate: Date, deliveryDays: TMealDay[]) => {
   const weekStart = startOfWeek(baseDate, { weekStartsOn: 0 });
   return deliveryDays
     .map((day) => addDays(weekStart, dayMap[day]))
     .sort((a, b) => a.getTime() - b.getTime());
 };
 
-export const getEndDateOnInactive = (deliveryDays: TCookingDay[]): string => {
+export const getEndDateOnInactive = (deliveryDays: TMealDay[]): string => {
   const inactiveDate = new Date();
   const deliveriesThisWeek = getEndDate(inactiveDate, deliveryDays);
   const lastDelivery = deliveriesThisWeek[deliveriesThisWeek.length - 1];

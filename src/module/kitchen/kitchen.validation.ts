@@ -1,10 +1,5 @@
 import { z } from "zod";
-import {
-  foodPreferance,
-  kitchenType,
-  mealTime,
-  weekDays,
-} from "./kitchen.const";
+import { foodPreferance, kitchenType } from "./kitchen.const";
 
 const kitchenValidationSchema = z.object({
   kitchenName: z
@@ -27,8 +22,6 @@ const kitchenValidationSchema = z.object({
   hygieneCertificate: z.string().optional(),
   licenseOrCertificate: z.string().optional(),
   foodPreference: z.array(z.enum([...foodPreferance] as [string, ...string[]])),
-  mealTimePerDay: z.array(z.enum([...mealTime] as [string, ...string[]])),
-  cookingDays: z.array(z.enum([...weekDays] as [string, ...string[]])),
   specialEquipments: z.array(z.string()).optional(),
 });
 
@@ -54,18 +47,6 @@ const updateKitchenValidationSchema = z.object({
     .optional(),
   removeFoodPreference: z
     .array(z.enum([...foodPreferance] as [string, ...string[]]))
-    .optional(),
-  addMealTimePerDay: z
-    .array(z.enum([...mealTime] as [string, ...string[]]))
-    .optional(),
-  removeMealTimePerDay: z
-    .array(z.enum([...mealTime] as [string, ...string[]]))
-    .optional(),
-  addCookingDays: z
-    .array(z.enum([...weekDays] as [string, ...string[]]))
-    .optional(),
-  removeCookingDays: z
-    .array(z.enum([...weekDays] as [string, ...string[]]))
     .optional(),
   addSpecialEquipments: z.array(z.string()).optional(),
   removeSpecialEquipments: z.array(z.string()).optional(),

@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { TCookingDay, TMealTime } from "../kitchen/kitchen.interface";
+import { TMealDay, TMealTime } from "../meal/meal.interface";
 
 export type TOrderType = "once" | "regular";
 export type TDeliveryMode = "mealPlanner" | "manual";
@@ -21,7 +21,7 @@ export type TOrder = {
   totalPrice: number;
   status: TOrderStatus;
   deliveryTime: TMealTime[];
-  deliveryDays: TCookingDay[];
+  deliveryDays: TMealDay[];
   deliveryMode: TDeliveryMode;
   orderType: TOrderType;
   isActive?: boolean;

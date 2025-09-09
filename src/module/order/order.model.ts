@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 import { TOrder } from "./order.interface";
 import { orderStatus } from "./order.const";
-import { weekDays } from "../kitchen/kitchen.const";
+import { mealTime, weekDays } from "../meal/meal.const";
 
 const OrderSchema = new Schema<TOrder>(
   {
@@ -41,7 +41,7 @@ const OrderSchema = new Schema<TOrder>(
     },
     deliveryTime: {
       type: [String],
-      enum: ["Breakfast", "Lunch", "Dinner"],
+      enum: mealTime,
     },
     deliveryMode: {
       type: String,

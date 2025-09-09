@@ -1,4 +1,4 @@
-import { TCookingDay } from "../kitchen/kitchen.interface";
+import { TMealDay } from "../meal/meal.interface";
 import { TDeliveryMode, TOrderStatus, TOrderType } from "./order.interface";
 
 export const orderType: TOrderType[] = ["once", "regular"];
@@ -14,7 +14,7 @@ export const orderStatus: TOrderStatus[] = [
 ];
 export const paymentMethod = ["online", "cash on delivery"];
 
-export const dayMap: Record<TCookingDay, number> = {
+export const dayMap: Record<TMealDay, number> = {
   Sunday: 0,
   Monday: 1,
   Tuesday: 2,

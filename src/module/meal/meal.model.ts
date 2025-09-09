@@ -1,8 +1,14 @@
 import { model, Schema } from "mongoose";
 import { TMeal } from "./meal.interface";
 import { diateryPreference } from "../mealPlanner/mealPlanner.const";
-import { cuisineType, foodCategory, portionSize } from "./meal.const";
-import { foodPreferance, mealTime, weekDays } from "../kitchen/kitchen.const";
+import {
+  cuisineType,
+  foodCategory,
+  mealTime,
+  portionSize,
+  weekDays,
+} from "./meal.const";
+import { foodPreferance } from "../kitchen/kitchen.const";
 import { allergyOptions } from "../customer/customer.const";
 
 const MealSchema = new Schema<TMeal>(

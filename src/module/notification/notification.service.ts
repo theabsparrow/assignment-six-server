@@ -1,0 +1,120 @@
+import { StatusCodes } from "http-status-codes";
+import QueryBuilder from "../../builder/QueryBuilder";
+import { io } from "../../server";
+import { KitchenSubscriber } from "../kitchenSubscriber/kitchenSubscriber.model";
+import { Notification } from "./notification.model";
+import AppError from "../../error/AppError";
+
+type TKitchenSubscriberNotification = {
+  kitchenId: string;
+  kitchenName: string;
+  mealId: string;
+};
+type TChangeOrderStatusNotification = {
+  mealName: string;
+  orderId: string;
+  userId: string;
+  status: string;
+};
+
+const notifyKitchenSubscribers = async ({
+  kitchenId,
+  kitchenName,
+  mealId,
+}: TKitchenSubscriberNotification) => {
+  const subs = await KitchenSubscriber.find({ kitchen: kitchenId }).select(
+    "user -_id"
+  );
+  if (!subs || subs.length === 0) return;
+
+  const notifications = subs.map((s) => ({
+    userId: s.user,
+    mealId: mealId,
+    content: `${kitchenName} has published a new meal item`,
+    link: `/meals/${mealId}`,
+  }));
+  const created = await Notification.insertMany(notifications);
+  created.forEach((n) => {
+    io.to(n?.userId.toString()).emit("notification", {
+      _id: n?._id,
+      content: n?.content,
+      link: n?.link,
+      isRead: n?.isRead,
+      createdAt: n?.createdAt,
+    });
+  });
+};
+
+const notifyCustomerForOrderStatus = async ({
+  mealName,
+  orderId,
+  userId,
+  status,
+}: TChangeOrderStatusNotification) => {
+  const notification = {
+    userId,
+    orderId,
+    content: `your order for ${mealName} is ${status}`,
+    link: `/user/myOrders/${orderId}`,
+  };
+  const created = await Notification.create(notification);
+  io.to(created.userId.toString()).emit("notification", {
+    _id: created?._id,
+    content: created?.content,
+    link: created?.link,
+    isRead: created?.isRead,
+    createdAt: created?.createdAt,
+  });
+};
+
+const getMyNotification = async (id: string) => {
+  const query = {
+    userId: id,
+    fields: "mealId, orderId, content, link, isRead, createdAt, ",
+    limit: 5,
+  };
+  const myNotificationQuery = new QueryBuilder(Notification.find(), query)
+    .filter()
+    .sort()
+    .paginateQuery()
+    .fields();
+  const result = await myNotificationQuery.modelQuery;
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no notification found");
+  }
+  return result;
+};
+
+const updateNotification = async (id: string, userId: string) => {
+  const notification = await Notification.findById(id).select(
+    "isDeleted isRead userId"
+  );
+  if (!notification || notification?.isDeleted) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "this notification does not exist"
+    );
+  }
+  if (notification.userId.toString() !== userId) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      "you can`t view this notification"
+    );
+  }
+  const result = await Notification.findByIdAndUpdate(
+    id,
+    { isRead: true },
+    { new: true }
+  );
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "something went wrong");
+  }
+  return result;
+};
+
+export const notificationService = {
+  notifyKitchenSubscribers,
+  getMyNotification,
+  updateNotification,
+  notifyCustomerForOrderStatus,
+};

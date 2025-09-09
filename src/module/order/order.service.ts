@@ -506,6 +506,13 @@ const updateOrderStatus = async ({
           `faild to send email to the customer`
         );
       }
+      await notificationService.notifyProviderForOrderCancelation({
+        mealName: isMealExists?.title as string,
+        orderId: result?._id.toString(),
+        userId: isProvider?.user.toString() as string,
+        status: result?.status,
+        customerName: isCustomerExist?.name as string,
+      });
     }
     await session.commitTransaction();
     await session.endSession();

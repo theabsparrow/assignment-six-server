@@ -4,18 +4,11 @@ import { io } from "../../server";
 import { KitchenSubscriber } from "../kitchenSubscriber/kitchenSubscriber.model";
 import { Notification } from "./notification.model";
 import AppError from "../../error/AppError";
-
-type TKitchenSubscriberNotification = {
-  kitchenId: string;
-  kitchenName: string;
-  mealId: string;
-};
-type TChangeOrderStatusNotification = {
-  mealName: string;
-  orderId: string;
-  userId: string;
-  status: string;
-};
+import {
+  TCancelNotification,
+  TChangeOrderStatusNotification,
+  TKitchenSubscriberNotification,
+} from "./notification.interface";
 
 const notifyKitchenSubscribers = async ({
   kitchenId,
@@ -56,6 +49,29 @@ const notifyCustomerForOrderStatus = async ({
     orderId,
     content: `your order for ${mealName} is ${status}`,
     link: `/user/myOrders/${orderId}`,
+  };
+  const created = await Notification.create(notification);
+  io.to(created.userId.toString()).emit("notification", {
+    _id: created?._id,
+    content: created?.content,
+    link: created?.link,
+    isRead: created?.isRead,
+    createdAt: created?.createdAt,
+  });
+};
+
+const notifyProviderForOrderCancelation = async ({
+  mealName,
+  orderId,
+  userId,
+  status,
+  customerName,
+}: TCancelNotification) => {
+  const notification = {
+    userId,
+    orderId,
+    content: `${customerName} has ${status} the order for ${mealName}`,
+    link: `/mealProvider/myOrders/${orderId}`,
   };
   const created = await Notification.create(notification);
   io.to(created.userId.toString()).emit("notification", {
@@ -117,4 +133,5 @@ export const notificationService = {
   getMyNotification,
   updateNotification,
   notifyCustomerForOrderStatus,
+  notifyProviderForOrderCancelation,
 };

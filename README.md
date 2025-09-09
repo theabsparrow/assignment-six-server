@@ -1,5 +1,3 @@
-# **Car Store**
-
 This is an advance backend application with rest apis built with the powerfull technology **Express.js**, **TypeScript**, and **MongoDB**. This is all about a meal box service and create meal document where the details of a meal is included with the price and quantity. An order collection manage the order with the totalprice and also calculate the reveneu form the order.
 
 ---

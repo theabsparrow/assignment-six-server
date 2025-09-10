@@ -109,6 +109,7 @@ const notifyProviderForOrderCancelation = async ({
 const getMyNotification = async (id: string) => {
   const query = {
     userId: id,
+    isDeleted: false,
     fields: "mealId, orderId, content, link, isRead, createdAt, ",
     limit: 5,
   };
@@ -151,6 +152,35 @@ const updateNotification = async (id: string, userId: string) => {
   return result;
 };
 
+const deleteNotification = async (id: string, userId: string) => {
+  const isNotificationExists = await Notification.findById(id).select(
+    "isDeleted, userId"
+  );
+  if (!isNotificationExists || isNotificationExists?.isDeleted) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "this notification does not exists"
+    );
+  }
+  if (userId !== isNotificationExists.userId.toString()) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      "you can`t delete this notification"
+    );
+  }
+  const result = await Notification.findByIdAndUpdate(
+    id,
+    { isDeleted: true },
+    { new: true }
+  );
+  if (!result) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "faild to delete this notification"
+    );
+  }
+  return null;
+};
 export const notificationService = {
   notifyKitchenSubscribers,
   getMyNotification,
@@ -158,4 +188,5 @@ export const notificationService = {
   notifyCustomerForOrderStatus,
   notifyProviderForOrderCancelation,
   createOrderNotification,
+  deleteNotification,
 };

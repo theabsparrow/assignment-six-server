@@ -37,7 +37,23 @@ const updateNotification = catchAsync(
   }
 );
 
+const deleteNotification = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { userId } = user as JwtPayload;
+    const id = req.params.id;
+    const result = await notificationService.deleteNotification(id, userId);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "notification deleted successfully",
+      data: result,
+    });
+  }
+);
+
 export const notificationController = {
   getMyNotifications,
   updateNotification,
+  deleteNotification,
 };

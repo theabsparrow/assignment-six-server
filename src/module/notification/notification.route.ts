@@ -18,4 +18,9 @@ router.patch(
   notificationController.updateNotification
 );
 
+router.delete(
+  "/delete-notification",
+  auth(USER_ROLE.customer, USER_ROLE.admin, USER_ROLE.mealProvider),
+  notificationController.deleteNotification
+);
 export const notificationRouter = router;

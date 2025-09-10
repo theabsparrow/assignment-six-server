@@ -30,3 +30,10 @@ export type TCancelNotification = {
   status: string;
   customerName: string;
 };
+
+export type TOrderCreationNotification = {
+  mealName: string;
+  orderId: string;
+  userId: string;
+  customerName: string;
+};

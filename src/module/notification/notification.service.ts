@@ -7,6 +7,7 @@ import {
   TCancelNotification,
   TChangeOrderStatusNotification,
   TKitchenSubscriberNotification,
+  TOrderCreationNotification,
 } from "./notification.interface";
 import { io } from "../../app";
 
@@ -35,6 +36,28 @@ const notifyKitchenSubscribers = async ({
       isRead: n?.isRead,
       createdAt: n?.createdAt,
     });
+  });
+};
+
+const createOrderNotification = async ({
+  mealName,
+  orderId,
+  userId,
+  customerName,
+}: TOrderCreationNotification) => {
+  const notification = {
+    userId,
+    orderId,
+    content: `${customerName} has requested a new order for ${mealName}`,
+    link: `/mealProvider/myOrders/${orderId}`,
+  };
+  const created = await Notification.create(notification);
+  io.to(created.userId.toString()).emit("notification", {
+    _id: created?._id,
+    content: created?.content,
+    link: created?.link,
+    isRead: created?.isRead,
+    createdAt: created?.createdAt,
   });
 };
 
@@ -134,4 +157,5 @@ export const notificationService = {
   updateNotification,
   notifyCustomerForOrderStatus,
   notifyProviderForOrderCancelation,
+  createOrderNotification,
 };

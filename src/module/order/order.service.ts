@@ -167,8 +167,14 @@ const createOrder = async ({
       subject: `order for ${isMealExist?.title} is placed`,
       text: "check this order to know more about this",
     });
-    return orderInfo;
+    await notificationService.createOrderNotification({
+      mealName: isMealExist?.title,
+      orderId: orderInfo._id.toString(),
+      userId: providerInfo?.user?._id,
+      customerName: isCustomerExist?.name,
+    });
   }
+  return orderInfo;
 };
 
 const getMyOrder = async (user: JwtPayload, query: Record<string, unknown>) => {

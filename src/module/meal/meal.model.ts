@@ -4,11 +4,11 @@ import { diateryPreference } from "../mealPlanner/mealPlanner.const";
 import {
   cuisineType,
   foodCategory,
+  foodPreferenceOptions,
   mealTime,
   portionSize,
   weekDays,
 } from "./meal.const";
-import { foodPreferance } from "../kitchen/kitchen.const";
 import { allergyOptions } from "../customer/customer.const";
 
 const MealSchema = new Schema<TMeal>(
@@ -48,7 +48,7 @@ const MealSchema = new Schema<TMeal>(
     },
     foodPreference: {
       type: String,
-      enum: foodPreferance,
+      enum: foodPreferenceOptions,
       required: [true, "Food preference is required"],
     },
     ingredients: {

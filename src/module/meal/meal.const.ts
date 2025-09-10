@@ -1,6 +1,8 @@
+import { foodPreferance } from "../kitchen/kitchen.const";
 import {
   TcuisineType,
   TFoodCategory,
+  TFoodPreference,
   TMealDay,
   TMealTime,
   TPortionSize,
@@ -25,6 +27,15 @@ export const cuisineType: TcuisineType[] = [
 ];
 
 export const portionSize: TPortionSize[] = ["Small", "Medium", "Large"];
+export const foodPreferenceOptions: TFoodPreference[] = [
+  ...foodPreferance,
+  "Vegan",
+  "Pescatarian",
+  "Eggetarian",
+  "Halal",
+  "Kosher",
+  "Jain",
+];
 
 export const weekDays: TMealDay[] = [
   "Sunday",

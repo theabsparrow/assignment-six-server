@@ -1,7 +1,6 @@
 import { z } from "zod";
-import { foodPreferance } from "../kitchen/kitchen.const";
 import { diateryPreference } from "./mealPlanner.const";
-import { mealTime, weekDays } from "../meal/meal.const";
+import { foodPreferenceOptions, mealTime, weekDays } from "../meal/meal.const";
 
 const mealPlannerValidationSchema = z.object({
   title: z
@@ -12,7 +11,7 @@ const mealPlannerValidationSchema = z.object({
     .max(100, "title can`t be more than 100 character"),
   preferredMealTime: z.array(z.enum([...mealTime] as [string, ...string[]])),
   preferredMealDay: z.array(z.enum([...weekDays] as [string, ...string[]])),
-  foodPreference: z.enum([...foodPreferance] as [string, ...string[]]),
+  foodPreference: z.enum([...foodPreferenceOptions] as [string, ...string[]]),
   dietaryPreferences: z.array(
     z.enum([...diateryPreference] as [string, ...string[]])
   ),
@@ -31,7 +30,7 @@ const updateMealPlannerValidationSchema = z.object({
     .max(100, "title can`t be more than 100 character")
     .optional(),
   foodPreference: z
-    .enum([...foodPreferance] as [string, ...string[]])
+    .enum([...foodPreferenceOptions] as [string, ...string[]])
     .optional(),
   addPreferredMealTime: z
     .array(z.enum([...mealTime] as [string, ...string[]]))

@@ -1,6 +1,5 @@
 import { Types } from "mongoose";
-import { FoodPreferenceOption } from "../kitchen/kitchen.interface";
-import { TMealDay, TMealTime } from "../meal/meal.interface";
+import { TFoodPreference, TMealDay, TMealTime } from "../meal/meal.interface";
 
 export type TDietaryPreference =
   | "Vegan"
@@ -27,7 +26,7 @@ export type TMealPlanner = {
   customer: Types.ObjectId;
   preferredMealTime: TMealTime[];
   preferredMealDay: TMealDay[];
-  foodPreference: FoodPreferenceOption;
+  foodPreference: TFoodPreference;
   dietaryPreferences: TDietaryPreference[];
   notes: string;
   isActive: boolean;

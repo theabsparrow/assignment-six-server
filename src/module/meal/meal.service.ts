@@ -363,7 +363,25 @@ const getFoodCategory = async () => {
 };
 
 const getFoodPreference = async () => {
-  const result = await Meal.distinct("foodPreference").sort();
+  const result = await Meal.aggregate([
+    { $sort: { createdAt: -1 } },
+    {
+      $group: {
+        _id: "$foodPreference",
+        id: { $first: "$_id" },
+        imageUrl: { $first: "$imageUrl" },
+        title: { $first: "$title" },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        id: 1,
+        imageUrl: 1,
+        title: 1,
+      },
+    },
+  ]);
   return result;
 };
 

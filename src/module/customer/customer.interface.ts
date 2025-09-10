@@ -13,6 +13,12 @@ export type TAlergies =
   | "Sesame"
   | "Peanuts"
   | "Dairy"
+  | "Mollusks"
+  | "Mustard"
+  | "Celery"
+  | "Lupin"
+  | "Corn"
+  | "Sulfites"
   | "None";
 
 export type TCustomer = {

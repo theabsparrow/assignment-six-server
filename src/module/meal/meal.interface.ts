@@ -49,6 +49,15 @@ export type TMealDay =
   | "Friday"
   | "Saturday";
 
+export type TFoodPreference =
+  | FoodPreferenceOption
+  | "Vegan"
+  | "Pescatarian"
+  | "Eggetarian"
+  | "Halal"
+  | "Kosher"
+  | "Jain";
+
 export type TPortionSize = "Small" | "Medium" | "Large";
 
 export type TMeal = {
@@ -59,7 +68,7 @@ export type TMeal = {
   dietaryPreferences: TDietaryPreference[];
   foodCategory: TFoodCategory;
   cuisineType: TcuisineType;
-  foodPreference: FoodPreferenceOption;
+  foodPreference: TFoodPreference;
   ingredients: string[];
   allergies: TAlergies[];
   portionSize: TPortionSize;

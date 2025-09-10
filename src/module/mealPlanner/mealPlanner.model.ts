@@ -1,8 +1,7 @@
 import { model, Schema } from "mongoose";
 import { TMealPlanner } from "./mealPlanner.interface";
-import { foodPreferance } from "../kitchen/kitchen.const";
 import { diateryPreference } from "./mealPlanner.const";
-import { mealTime, weekDays } from "../meal/meal.const";
+import { foodPreferenceOptions, mealTime, weekDays } from "../meal/meal.const";
 
 const MealPlannerSchema = new Schema<TMealPlanner>(
   {
@@ -28,7 +27,7 @@ const MealPlannerSchema = new Schema<TMealPlanner>(
     },
     foodPreference: {
       type: String,
-      enum: foodPreferance,
+      enum: foodPreferenceOptions,
       required: [true, "food preference is required"],
     },
     dietaryPreferences: {

@@ -3,12 +3,12 @@ import { diateryPreference } from "../mealPlanner/mealPlanner.const";
 import {
   cuisineType,
   foodCategory,
+  foodPreferenceOptions,
   mealTime,
   portionSize,
   weekDays,
 } from "./meal.const";
 import { allergyOptions } from "../customer/customer.const";
-import { foodPreferance } from "../kitchen/kitchen.const";
 
 const mealValidationSchema = z.object({
   title: z.string().min(1, "Meal title is required"),
@@ -22,7 +22,7 @@ const mealValidationSchema = z.object({
   cuisineType: z.enum([...cuisineType] as [string, ...string[]], {
     required_error: "Cuisine type is required",
   }),
-  foodPreference: z.enum([...foodPreferance] as [string, ...string[]], {
+  foodPreference: z.enum([...foodPreferenceOptions] as [string, ...string[]], {
     required_error: "Food preference is required",
   }),
   ingredients: z
@@ -58,7 +58,7 @@ const updateMealValidationSchema = z.object({
   foodCategory: z.enum([...foodCategory] as [string, ...string[]]).optional(),
   cuisineType: z.enum([...cuisineType] as [string, ...string[]]).optional(),
   foodPreference: z
-    .enum([...foodPreferance] as [string, ...string[]])
+    .enum([...foodPreferenceOptions] as [string, ...string[]])
     .optional(),
   addIngredients: z
     .array(z.string())

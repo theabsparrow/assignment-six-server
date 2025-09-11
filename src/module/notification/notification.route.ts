@@ -19,7 +19,7 @@ router.patch(
 );
 
 router.delete(
-  "/delete-notification",
+  "/delete-notification/:id",
   auth(USER_ROLE.customer, USER_ROLE.admin, USER_ROLE.mealProvider),
   notificationController.deleteNotification
 );

@@ -102,7 +102,7 @@ const getMyBlogs = async (userId: string, query: Record<string, unknown>) => {
   filter.authorId = userId;
   query = {
     ...query,
-    fields: "title, status, createdAt, view , excerpts",
+    fields: "title, status, createdAt, view ",
     ...filter,
   };
   const blogQuery = new QueryBuilder(Blog.find(), query)

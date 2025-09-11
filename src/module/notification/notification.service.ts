@@ -154,14 +154,15 @@ const updateNotification = async (id: string, userId: string) => {
 
 const deleteNotification = async (id: string, userId: string) => {
   const isNotificationExists = await Notification.findById(id).select(
-    "isDeleted, userId"
+    "isDeleted userId"
   );
-  if (!isNotificationExists || isNotificationExists?.isDeleted) {
+  if (!isNotificationExists || isNotificationExists.isDeleted) {
     throw new AppError(
       StatusCodes.NOT_FOUND,
       "this notification does not exists"
     );
   }
+
   if (userId !== isNotificationExists.userId.toString()) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,

@@ -255,7 +255,6 @@ const getAllUsersWithProfile = async (query: TQuery) => {
       ? {
           $or: [
             { email: { $regex: searchTerm, $options: "i" } },
-            { phone: { $regex: searchTerm, $options: "i" } },
             { "profile.name": { $regex: searchTerm, $options: "i" } },
           ],
         }

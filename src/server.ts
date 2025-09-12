@@ -8,9 +8,7 @@ import { Socket } from "socket.io";
 let server: Server;
 async function main() {
   try {
-    console.log(process.env.DATABASE_URL);
-    // if (!config.database_url) throw new Error("DATABASE_URL is missing!");
-    await mongoose.connect(process.env.DATABASE_URL as string);
+    await mongoose.connect(config?.database_url as string);
     console.log("✅ MongoDB connected successfully");
     await seedSuperAdmin();
     await seedSuperAdmin();
@@ -23,7 +21,7 @@ async function main() {
         console.log("❌ User disconnected:", socket.id);
       });
     });
-    const PORT = process.env.PORT || config.port || 9000;
+    const PORT = process.env.PORT || config?.port || 9000;
     server = app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT} 😎`);
     });

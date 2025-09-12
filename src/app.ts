@@ -11,7 +11,8 @@ import { createServer } from "http";
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
-const corsOption = {
+
+export const corsOption = {
   origin: [
     "http://localhost:3000",
     "http://localhost:5173",

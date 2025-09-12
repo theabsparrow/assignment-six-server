@@ -19,9 +19,9 @@ async function main() {
         console.log("❌ User disconnected:", socket.id);
       });
     });
-
-    server = app.listen(config.port, () => {
-      console.log(`🚀 Server is running on port ${config.port} 😎`);
+    const PORT = process.env.PORT || config.port || 3000;
+    server = app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT} 😎`);
     });
   } catch (error) {
     console.log(error);

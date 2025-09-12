@@ -19,26 +19,22 @@ async function main() {
         console.log("❌ User disconnected:", socket.id);
       });
     });
-    const PORT = process.env.PORT || config.port || 3000;
+    const PORT = process.env.PORT || config.port || 9000;
     server = app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT} 😎`);
     });
   } catch (error) {
-    console.log(error);
+    console.error("❌ Server failed to start:", error);
   }
 }
-
 main();
-process.on("unhandledRejection", () => {
-  console.log(`⚠️ Unhandled rejection detected`);
-  if (server) {
-    server.close(() => {
-      process.exit(1);
-    });
-  }
+
+process.on("unhandledRejection", (err) => {
+  console.error("⚠️ Unhandled rejection:", err);
+  if (server) server.close(() => process.exit(1));
 });
 
-process.on("uncaughtException", () => {
-  console.log(`⚠️ Uncaught exception detected`);
+process.on("uncaughtException", (err) => {
+  console.error("⚠️ Uncaught exception:", err);
   process.exit(1);
 });

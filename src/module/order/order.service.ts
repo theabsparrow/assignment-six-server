@@ -222,7 +222,7 @@ const getMyOrder = async (user: JwtPayload, query: Record<string, unknown>) => {
   if (userRole === USER_ROLE.customer) {
     filter.customerId = OrderOwner?._id;
     query.fields =
-      "mealId kitchenId deliveryMode orderType status payment createdAt endDate isActive";
+      "mealId kitchenId deliveryMode orderType status payment endDate isActive";
     populateField = [
       { path: "mealId", select: "title " },
       { path: "kitchenId", select: "kitchenName" },
@@ -230,18 +230,17 @@ const getMyOrder = async (user: JwtPayload, query: Record<string, unknown>) => {
   } else if (userRole === USER_ROLE.mealProvider) {
     filter.kitchenId = OrderOwner?._id;
     query.fields =
-      "mealId deliveryMode orderType status payment isActive quantity totalPrice deliveredCount deliveryAddress";
+      "mealId deliveryMode orderType status payment isActive totalPrice deliveryAddress";
     populateField = [
       { path: "mealId", select: "title " },
       { path: "customerId", select: "name" },
     ];
   } else {
     query.fields =
-      "mealId kitchenId customerId deliveryMode orderType status payment createdAt isActive deliveryAddress";
+      "mealId customerId deliveryMode orderType status payment isActive deliveryAddress";
     populateField = [
       { path: "mealId", select: "title " },
       { path: "customerId", select: "name" },
-      { path: "kitchenId", select: "kitchenName" },
     ];
   }
   query = { ...query, ...filter };

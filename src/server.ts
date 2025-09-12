@@ -9,7 +9,7 @@ let server: Server;
 async function main() {
   try {
     if (!config.database_url) throw new Error("DATABASE_URL is missing!");
-    await mongoose.connect(config.database_url);
+    await mongoose.connect(process.env.DATABASE_URL as string);
     console.log("✅ MongoDB connected successfully");
     await seedSuperAdmin();
     await seedSuperAdmin();

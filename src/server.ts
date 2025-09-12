@@ -8,7 +8,8 @@ import { Socket } from "socket.io";
 let server: Server;
 async function main() {
   try {
-    await mongoose.connect(config?.database_url as string);
+    if (!config?.database_url) throw new Error("Database url missing");
+    await mongoose.connect(config?.database_url);
     console.log("✅ MongoDB connected successfully");
     await seedSuperAdmin();
     await seedSuperAdmin();

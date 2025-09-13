@@ -220,6 +220,10 @@ const getMeroute = async (user: JwtPayload, query: Record<string, unknown>) => {
       userData = await Customer.findOne({ user: userId })
         .select("user")
         .populate({ path: "user", select: "email phone verifiedWithEmail" });
+    } else if (query.for === "plan") {
+      userData = await Customer.findOne({ user: userId })
+        .select("user")
+        .populate({ path: "user", select: "verifiedWithEmail" });
     } else {
       userData = await Customer.findOne({ user: userId })
         .select("-isDeleted -createdAt -updatedAt")
@@ -245,6 +249,10 @@ const getMeroute = async (user: JwtPayload, query: Record<string, unknown>) => {
       userData = await MealProvider.findOne({ user: userId })
         .select("user")
         .populate({ path: "user", select: "email phone verifiedWithEmail" });
+    } else if (query.for === "kitchen") {
+      userData = await MealProvider.findOne({ user: userId })
+        .select("user hasKitchen")
+        .populate({ path: "user", select: "verifiedWithEmail" });
     } else {
       userData = await MealProvider.findOne({ user: userId })
         .select("-isDeleted -createdAt -updatedAt")

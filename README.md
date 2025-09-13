@@ -10,7 +10,7 @@ This is an advance backend application with rest apis built with the powerfull t
 
 ## **api common inception** : (https://assignment-six-server.onrender.com/api/v1)
 
-## **client site live link** : https://mealbx-client.vercel.app/
+## **client site live link** : https://dailydish-six.vercel.app/
 
 ## **client site github repo** : https://github.com/theabsparrow/assignment-six-client.git
 

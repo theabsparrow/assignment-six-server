@@ -4,7 +4,11 @@ This is an advance backend application with rest apis built with the powerfull t
 
 ## **Live Demo server site** : (https://daily-dish-server-murex.vercel.app)
 
+## **Live Demo server site** : (https://assignment-six-server.onrender.com)
+
 ## **api common inception** : (https://daily-dish-server-murex.vercel.app/api/v1)
+
+## **api common inception** : (https://assignment-six-server.onrender.com/api/v1)
 
 ## **client site live link** : https://mealbx-client.vercel.app/
 

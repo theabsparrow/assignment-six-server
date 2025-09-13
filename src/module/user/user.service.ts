@@ -207,23 +207,61 @@ const createMealProvider = async (
   }
 };
 
-const getMeroute = async (userId: string, userRole: string) => {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new AppError(StatusCodes.NOT_FOUND, "data not available");
-  }
-  let userdata = null;
+const getMeroute = async (user: JwtPayload, query: Record<string, unknown>) => {
+  const { userId, userRole } = user;
+
+  let userData = null;
   if (userRole === USER_ROLE.customer || userRole === USER_ROLE.admin) {
-    userdata = await Customer.findOne({ user: userId });
+    if (query.for === "navbar") {
+      userData = await Customer.findOne({ user: userId }).select(
+        "name profileImage user"
+      );
+    } else if (query.for === "settings") {
+      userData = await Customer.findOne({ user: userId })
+        .select("user")
+        .populate({ path: "user", select: "email phone verifiedWithEmail" });
+    } else {
+      userData = await Customer.findOne({ user: userId })
+        .select("-isDeleted -createdAt -updatedAt")
+        .populate({
+          path: "user",
+          select: "email phone verifiedWithEmail role",
+        });
+    }
+    if (!userData) {
+      throw new AppError(
+        StatusCodes.NOT_FOUND,
+        "something went wrong, no Data found"
+      );
+    }
   }
+
   if (userRole === USER_ROLE.mealProvider) {
-    userdata = await MealProvider.findOne({ user: userId });
+    if (query.for === "navbar") {
+      userData = await MealProvider.findOne({ user: userId }).select(
+        "name profileImage user"
+      );
+    } else if (query.for === "settings") {
+      userData = await MealProvider.findOne({ user: userId })
+        .select("user")
+        .populate({ path: "user", select: "email phone verifiedWithEmail" });
+    } else {
+      userData = await MealProvider.findOne({ user: userId })
+        .select("-isDeleted -createdAt -updatedAt")
+        .populate({
+          path: "user",
+          select: "email phone verifiedWithEmail role",
+        });
+    }
+    if (!userData) {
+      throw new AppError(
+        StatusCodes.NOT_FOUND,
+        "something went wrong, no Data found"
+      );
+    }
   }
-  if (!userdata) {
-    throw new AppError(StatusCodes.NOT_FOUND, "data not available");
-  }
-  const result = { user, userdata };
-  return result;
+
+  return userData;
 };
 
 const getAllUsersWithProfile = async (query: TQuery) => {

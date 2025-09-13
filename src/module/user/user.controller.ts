@@ -40,9 +40,9 @@ const createMealProvider = catchAsync(
 
 const getMeRoute = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const payload = req.user as JwtPayload;
-    const { userId, userRole } = payload;
-    const result = await userService.getMeroute(userId, userRole);
+    const user = req.user as JwtPayload;
+    const query = req.query;
+    const result = await userService.getMeroute(user, query);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

@@ -2,7 +2,7 @@
 import { StatusCodes } from "http-status-codes";
 import AppError from "../../error/AppError";
 import { Customer } from "../customer/customer.model";
-import { TRating } from "./rating.interface";
+import { TRating, TUpdateRating } from "./rating.interface";
 import { Meal } from "../meal/meal.model";
 import { Rating } from "./rating.model";
 import mongoose from "mongoose";
@@ -253,8 +253,94 @@ const getMyFeedbacks = async (id: string, query: Record<string, unknown>) => {
   return { meta, result, totalFeedback };
 };
 
+const updateMyFeedback = async ({
+  userId,
+  id,
+  payload,
+}: {
+  userId: string;
+  id: string;
+  payload: Partial<TUpdateRating>;
+}) => {
+  const isFeedbackExists = await Rating.findById(id).select(
+    "isDeleted userId mealId"
+  );
+  if (!isFeedbackExists || isFeedbackExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "feedback does not exists");
+  }
+  const isCustomerExists = await Customer.findOne({ user: userId }).select(
+    "name"
+  );
+  if (!isCustomerExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "data not found");
+  }
+  if (isCustomerExists._id.toString() !== isFeedbackExists.userId.toString()) {
+    throw new AppError(StatusCodes.UNAUTHORIZED, "you can`t update this");
+  }
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    let result;
+    if (payload?.rating) {
+      result = await Rating.findByIdAndUpdate(id, payload, {
+        session,
+        new: true,
+        runValidators: true,
+      });
+      if (!result) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          "failed to update the feedback info"
+        );
+      }
+      const allRatings = await Rating.find({
+        mealId: isFeedbackExists?.mealId,
+        isDeleted: false,
+      }).session(session);
+      if (!allRatings.length) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to rate this meal");
+      }
+      const totalRatings = allRatings.reduce(
+        (acc, item) => acc + item?.rating,
+        0
+      );
+      const avarageRating = Number(
+        (totalRatings / allRatings?.length).toFixed(1)
+      );
+      const RatingResult = await Meal.findByIdAndUpdate(
+        isFeedbackExists?.mealId,
+        { avarageRating: avarageRating },
+        { session, new: true, runValidators: true }
+      );
+      if (!RatingResult) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "faild to rate this meal");
+      }
+    } else {
+      result = await Rating.findByIdAndUpdate(id, payload, {
+        session,
+        new: true,
+        runValidators: true,
+      });
+      if (!result) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          "failed to update the feedback info"
+        );
+      }
+    }
+    await session.commitTransaction();
+    await session.endSession();
+    return result;
+  } catch (err: any) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new AppError(StatusCodes.BAD_REQUEST, err);
+  }
+};
+
 export const ratingService = {
   addRating,
   removeRating,
   getMyFeedbacks,
+  updateMyFeedback,
 };

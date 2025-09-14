@@ -28,4 +28,10 @@ router.get(
   authRefesh(USER_ROLE.customer),
   ratingController.getMyFeedbacks
 );
+router.patch(
+  "/update-feedback/:id",
+  auth(USER_ROLE.customer),
+  validateRequest(ratingValidation.updateRatingValidationSchema),
+  ratingController.updateMyFeedback
+);
 export const ratingRoute = router;

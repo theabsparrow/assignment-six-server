@@ -9,3 +9,8 @@ export type TRating = {
   feedback: string;
   isDeleted: boolean;
 };
+
+export type TUpdateRating = {
+  rating: number;
+  feedback: string;
+};

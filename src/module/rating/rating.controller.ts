@@ -53,8 +53,29 @@ const getMyFeedbacks = catchAsync(
   }
 );
 
+const updateMyFeedback = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    const { userId } = user;
+    const id = req.params.id;
+    const payload = req.body;
+    const result = await ratingService.updateMyFeedback({
+      userId,
+      id,
+      payload,
+    });
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "feedback is updated successfully",
+      data: result,
+    });
+  }
+);
+
 export const ratingController = {
   addRating,
   removeRating,
   getMyFeedbacks,
+  updateMyFeedback,
 };

@@ -34,4 +34,5 @@ router.patch(
   validateRequest(ratingValidation.updateRatingValidationSchema),
   ratingController.updateMyFeedback
 );
+router.get("/all-feedback/:id", ratingController.getAllRatingOfAMeal);
 export const ratingRoute = router;

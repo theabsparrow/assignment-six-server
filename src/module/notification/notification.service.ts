@@ -106,12 +106,23 @@ const notifyProviderForOrderCancelation = async ({
   });
 };
 
-const getMyNotification = async (id: string) => {
-  const query = {
-    userId: id,
-    isDeleted: false,
+const getMyNotification = async (
+  id: string,
+  query: Record<string, unknown>
+) => {
+  const filter: Record<string, unknown> = {};
+  filter.userId = id;
+  filter.isDeleted = false;
+  if (!query.page) {
+    query.page = 1;
+  }
+  if (!query.limit) {
+    query.limit = 5;
+  }
+  query = {
+    ...query,
     fields: "mealId, orderId, content, link, isRead, createdAt, ",
-    limit: 5,
+    ...filter,
   };
   const myNotificationQuery = new QueryBuilder(Notification.find(), query)
     .filter()

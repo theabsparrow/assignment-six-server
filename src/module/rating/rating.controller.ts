@@ -73,9 +73,24 @@ const updateMyFeedback = catchAsync(
   }
 );
 
+const getAllRatingOfAMeal = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const query = req.query;
+    const result = await ratingService.allratingOfAMeal(id, query);
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "feedbacks are retirved successfully",
+      data: result,
+    });
+  }
+);
+
 export const ratingController = {
   addRating,
   removeRating,
   getMyFeedbacks,
   updateMyFeedback,
+  getAllRatingOfAMeal,
 };

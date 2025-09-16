@@ -338,9 +338,43 @@ const updateMyFeedback = async ({
   }
 };
 
+const allratingOfAMeal = async (id: string, query: Record<string, unknown>) => {
+  const isMealExists = await Meal.findById(id).select("isDeleted");
+  if (!isMealExists) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  if (isMealExists?.isDeleted) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  const filter: Record<string, unknown> = {};
+  filter.isDeleted = false;
+  filter.mealId = id;
+  query = {
+    ...query,
+    fields: "rating, feedback, userId, createdAt",
+    limit: 20,
+    ...filter,
+  };
+  const ratingQuery = new QueryBuilder(Rating.find(), query)
+    .filter()
+    .sort()
+    .paginateQuery()
+    .fields();
+  const result = await ratingQuery.modelQuery.populate({
+    path: "userId",
+    select: "name profileImage",
+  });
+  const meta = await ratingQuery.countTotal();
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "no data found");
+  }
+  return { meta, result };
+};
+
 export const ratingService = {
   addRating,
   removeRating,
   getMyFeedbacks,
   updateMyFeedback,
+  allratingOfAMeal,
 };

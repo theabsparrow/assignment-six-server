@@ -12,7 +12,8 @@ const getMyNotifications = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
     const { userId } = user as JwtPayload;
-    const result = await notificationService.getMyNotification(userId);
+    const query = req.query;
+    const result = await notificationService.getMyNotification(userId, query);
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,

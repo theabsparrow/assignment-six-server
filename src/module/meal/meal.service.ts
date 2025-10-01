@@ -140,7 +140,19 @@ const getAllMealList = async (query: Record<string, unknown>) => {
   if (!result) {
     throw new AppError(StatusCodes.NOT_FOUND, "no data found");
   }
-  return { meta, result };
+  const totalMeal = await Meal.countDocuments({ isDeleted: false });
+  const highestMealPrice = await Meal.findOne(
+    { isDeleted: false },
+    { price: 1 }
+  )
+    .sort({ price: -1 })
+    .lean();
+  const lowestMealPrice = await Meal.findOne({ isDeleted: false }, { price: 1 })
+    .sort({ price: 1 })
+    .lean();
+  const maxPrice = highestMealPrice?.price ?? 0;
+  const minPrice = lowestMealPrice?.price ?? 0;
+  return { meta, result, totalMeal, maxPrice, minPrice };
 };
 
 const getMyMeals = async (query: Record<string, unknown>, id: string) => {
